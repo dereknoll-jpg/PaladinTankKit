@@ -1,0 +1,1 @@
+A minimalist Paladin tanking addon for WoW Forever with smart dungeon marking, animated ability timers, compact boss notes, and quiet buff and shield alerts.

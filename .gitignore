@@ -1,0 +1,14 @@
+node_modules/
+.npm-cache/
+dist/
+backups/
+previews/.chrome-icon-review/
+previews/.edge-icon-review/
+release/media/originals/
+release/media/raw-gif/
+release/media/gif-frames/
+release/media/gif-frames-small/
+release/media/gallery/06-in-game-preview.gif
+previews/gif-encoder-check/
+previews/gif-encoder-check.gif
+previews/reference-*.jpg

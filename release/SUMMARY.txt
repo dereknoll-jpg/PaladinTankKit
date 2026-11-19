@@ -1,0 +1,1 @@
+A minimalist Paladin tanking companion with target-started dungeon marking, ability timers, boss notes, and shield durability warnings.

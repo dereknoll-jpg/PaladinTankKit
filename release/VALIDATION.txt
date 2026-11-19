@@ -1,0 +1,12 @@
+528 automated behavioral checks pass for 1.0.0, plus Lua 5.1 syntax, initialization,
+TOC/bindings, non-Paladin isolation and texture structure checks.
+
+Native-client visual review: completed on the user's Paladin in WoW Forever.
+All four settings pages, new logo, preview timers and compact boss notes reviewed.
+Five cropped native screenshots and a 64-frame native preview GIF exported.
+The GIF is sampled at approximately 3 frames/second; it does not represent the
+client's animation frame rate. Preview media uses synthetic timers, visibly labeled.
+Live dungeon end-to-end combat test: not performed by the assistant.
+Public CurseForge publishing: not yet performed.
+
+Changes since 0.4.1: see CHANGELOG.md.

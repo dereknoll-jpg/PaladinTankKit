@@ -1,0 +1,94 @@
+local addonName, PTK = ...
+BINDING_HEADER_PALADINTANKKIT = "Paladin TankKit"
+BINDING_NAME_PALADINTANKKIT_SKULL = "Mark Skull (mouseover / target)"
+BINDING_NAME_PALADINTANKKIT_CROSS = "Mark Cross (mouseover / target)"
+BINDING_NAME_PALADINTANKKIT_CLEAR = "Clear mark (mouseover / target)"
+BINDING_NAME_PALADINTANKKIT_PULL = "Mark Pull (smart elite priorities)"
+function PaladinTankKit_Mark(icon) PTK:Mark(icon) end
+function PaladinTankKit_Pull() PTK:SmartMarkPull() end
+
+local events = CreateFrame("Frame")
+PTK.events = events
+events:RegisterEvent("ADDON_LOADED")
+
+function PTK:Command(message)
+    local cmd, argument = (message or ""):lower():match("^%s*(%S*)%s*(.-)%s*$")
+    if not self.isPaladin then self:Print("This toolkit is for Paladins."); return end
+    if cmd == "on" or cmd == "off" then
+        self.db.enabled = cmd == "on"; self:ResetMarking(); self:RecoverCooldowns(); self:UpdatePermissionAlert()
+    elseif cmd == "auto" then self.db.autoMark = not self.db.autoMark; self:ResetMarking()
+    elseif cmd == "pull" then self:SmartMarkPull(); return
+    elseif cmd == "resume" then self:ResetMarking(); self:Print("Auto marking reset; existing marks remain respected.")
+    elseif cmd == "notes" then self:ShowBossNoteInChat(); return
+    elseif cmd == "share" then self:ShareBossNote(); return
+    elseif cmd == "unlock" or cmd == "lock" then self.db.locked = cmd == "lock"
+    elseif cmd == "preview" then self:TogglePreview(); return
+    elseif cmd == "reset" then self.db.position = nil; self.db.scale = 1; self:Position()
+    elseif cmd == "ground" then
+        local seconds = tonumber(argument)
+        if not seconds or seconds < 4 or seconds > 20 then self:Print("Use /ptk ground 4-20 (seconds)."); return end
+        self.db.groundDuration = seconds; self:Print("Ground-effect estimate: " .. seconds .. " seconds.")
+    elseif cmd == "help" then
+        self:Print("/ptk settings | on | off | auto | pull | resume | notes | share")
+        self:Print("/ptk unlock | lock | preview | reset | ground 8")
+        self:Print("Bind Skull, Cross and Clear in WoW's Key Bindings under Paladin TankKit.")
+    else self:ToggleSettings() end
+    self:SyncSettings(); self:Render()
+end
+
+events:SetScript("OnEvent", function(_, event, ...)
+    if event == "ADDON_LOADED" then
+        if ... ~= addonName then return end
+        events:UnregisterEvent("ADDON_LOADED")
+        local _, class = UnitClass("player")
+        PTK.isPaladin = class == "PALADIN"
+        PTK:InitializeDB()
+        SLASH_PALADINTANKKIT1, SLASH_PALADINTANKKIT2 = "/ptk", "/paladintankkit"
+        SlashCmdList.PALADINTANKKIT = function(message) PTK:Command(message) end
+        if not PTK.isPaladin then return end
+        PTK:ResetMarking(); PTK:DiscoverSpells(); PTK:RecoverCooldowns(); PTK:RefreshAuras(); PTK:CreateUI()
+        for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_SPELLCAST_SUCCEEDED",
+            "SPELLS_CHANGED", "SPELL_UPDATE_COOLDOWN", "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_FORMS", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED",
+            "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_MOUNT_DISPLAY_CHANGED",
+            "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE",
+            "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "UNIT_DIED"}) do events:RegisterEvent(name) end
+        for _, name in ipairs({"UPDATE_INVENTORY_DURABILITY", "PLAYER_EQUIPMENT_CHANGED", "PLAYER_TALENT_UPDATE"}) do events:RegisterEvent(name) end
+        local animationElapsed, auraElapsed, markingElapsed = 0, 0, 0
+        events:SetScript("OnUpdate", function(_, elapsed)
+            if not PTK.db.enabled then return end
+            animationElapsed, auraElapsed = animationElapsed + elapsed, auraElapsed + elapsed
+            markingElapsed = markingElapsed + elapsed
+            if markingElapsed >= 0.35 then PTK:AutoMarkTick(); markingElapsed = 0 end
+            if auraElapsed >= 0.5 then PTK:RefreshAuras(); auraElapsed = 0 end
+            if animationElapsed >= 1/60 then PTK:Render(); animationElapsed = 0 end
+        end)
+        PTK:UpdatePermissionAlert(); PTK:Render()
+        PTK:Print("Loaded. /ptk for settings; bind Skull in WoW's Key Bindings.")
+        return
+    end
+    if not PTK.isPaladin or not PTK.db then return end
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        local unit, _, spellID = ...
+        PTK:NoteCast(unit, spellID)
+    elseif event == "UNIT_AURA" then
+        local unit = ...
+        if not PTK:Readable(unit) or unit ~= "player" then return end
+    elseif event == "SPELLS_CHANGED" or event == "PLAYER_TALENT_UPDATE" then
+        PTK:DiscoverSpells()
+        for _, key in ipairs({"ground", "justice", "holy", "bulwark"}) do PTK[key .. "Tile"].icon:SetTexture(PTK.spells[key].icon) end
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        PTK.preview = false; PTK:SyncSettings()
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        PTK:ResetMarking()
+    elseif event == "UNIT_DIED" then
+        PTK:MarkUnitDied(...)
+    elseif event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_DEAD" then
+        PTK.memory, PTK.ground, PTK.preview = {}, nil, false
+        PTK:ClearUsedTimers()
+        PTK:ResetMarking()
+        PTK:DiscoverSpells(); PTK:RecoverCooldowns(); PTK:SyncSettings()
+    end
+    if event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then PTK:UpdatePermissionAlert() end
+    if event == "SPELL_UPDATE_COOLDOWN" or event == "SPELLS_CHANGED" then PTK:RecoverCooldowns() end
+    PTK:RefreshAuras(); PTK:RefreshUsedCooldowns(); PTK:Render()
+end)
