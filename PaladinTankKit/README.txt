@@ -1,4 +1,4 @@
-Paladin TankKit 1.0.0 - WoW Forever (Interface 16001)
+Paladin TankKit 1.0.1 - WoW Forever (Interface 16001)
 Mark. Track. Protect.
 
 /ptk opens the new settings panel: Overview, Ability timers, Dungeon marking,
@@ -17,6 +17,10 @@ TIMERS: Active Seal, Consecration, Hammer of Justice, Holy Shield and talented
 Templar's Bulwark share one rail. Individual switches control their visibility.
 Seals and Holy Shield use actual buff expiration. Judgement does not clear or reset
 them. Consecration uses an adjustable ground-effect estimate (default 8 seconds).
+Version 1.0.1 adds direct player aura lookups by name/ID. Seal procs cannot clear
+or restart a buff timer. Target changes do not invalidate player buff snapshots.
+Consecration prefers a readable buff or ground-effect slot and can recover a missed
+cast from its cooldown start. Displayed timer artwork stays full-colour and opaque.
 Cooldowns use Blizzard's readable data, including recovery after reloads/zoning/death.
 A delayed initial cooldown update is not treated as Ready. Unused spells stay hidden.
 Confirmed cooldown completion briefly lights up, then clears. Forbearance is a badge.

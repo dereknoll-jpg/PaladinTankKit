@@ -1,5 +1,81 @@
 local _, P = ...
 
+function P:ReadCooldown(id)
+    local api = C_Spell and C_Spell.GetSpellCooldown or GetSpellCooldown
+    if type(api) ~= "function" then return nil end
+    local ok, info, legacyDuration, legacyEnabled, legacyRate = pcall(api, id)
+    if not ok or not self:Readable(info) then return nil end
+    local start, duration, enabled, rate
+    if type(info) == "table" then
+        start, duration = self:Field(info,"startTime"), self:Field(info,"duration")
+        local enabledOK, rateOK
+        enabled, enabledOK = self:Field(info,"isEnabled")
+        rate, rateOK = self:Field(info,"modRate")
+        if not enabledOK or not rateOK then return nil end
+    else
+        start, duration, enabled, rate = info, legacyDuration, legacyEnabled, legacyRate
+    end
+    if not self:Number(start) or not self:Number(duration) or start < 0 or duration < 0
+        or not self:Readable(enabled) or enabled == false or enabled == 0
+        or not self:Readable(rate) then return nil end
+    rate = self:Number(rate) and rate > 0 and rate or 1
+    local remaining = math.max(0,start+duration/rate-GetTime())
+    if remaining > 0 and duration <= 1.5 then return nil end
+    return remaining, start, duration/rate
+end
+
+function P:RememberCastRequest(unit, guid, id)
+    if not self:Readable(unit) or unit ~= "player" or not self:Number(id)
+        or not self:Readable(guid) or type(guid) ~= "string" then return end
+    self.castRequests = self.castRequests or {}
+    local now = GetTime()
+    for token, cast in pairs(self.castRequests) do
+        if now-cast.at > 3 then self.castRequests[token] = nil end
+    end
+    self.castRequests[guid] = {id=id, at=now}
+end
+
+function P:SuccessfulCast(unit, guid, id)
+    if not self:Readable(unit) or unit ~= "player" then return end
+    local request
+    if self:Readable(guid) and type(guid) == "string" and self.castRequests then
+        request = self.castRequests[guid]; self.castRequests[guid] = nil
+        if request and GetTime()-request.at > 3 then request = nil end
+    end
+    -- Match a readable request to the exact successful cast, never just the last button.
+    if not self:Number(id) then id = request and request.id end
+    self:NoteCast(unit,id,request and request.id == id)
+end
+
+function P:RefreshGround(aura)
+    if UnitIsDeadOrGhost("player") then return end
+    local now = GetTime()
+    local function adopt(expires, duration, estimated, source)
+        if not self:Number(expires) or expires <= now then return end
+        self.ground = {active=true,expires=expires,duration=duration,estimated=estimated,source=source}
+    end
+    if aura and aura.expires and aura.expires > now then
+        adopt(aura.expires,aura.duration,false,"aura"); return
+    end
+    -- Forever can represent the persistent ground effect in a player totem slot.
+    if type(GetTotemInfo) == "function" then
+        for slot=1,4 do
+            local ok, have, name, start, duration = pcall(GetTotemInfo,slot)
+            if ok and self:Readable(have) and have == true and self:Readable(name)
+                and type(name) == "string" and (self.spells.ground.names[name] or name == "Consecration")
+                and self:Number(start) and self:Number(duration) and duration > 0 and start+duration > now then
+                adopt(start+duration,duration,false,"totem"); return
+            end
+        end
+    end
+    if self.ground and self.ground.expires > now then return end
+    -- Recover a missed cast from the ability's own cooldown start, never the GCD.
+    local remaining, start = self:Cooldown("ground")
+    if remaining and remaining > 0 and start and start+self.db.groundDuration > now then
+        adopt(start+self.db.groundDuration,self.db.groundDuration,true,"cooldown")
+    end
+end
+
 function P:IsKnownSpell(id)
     local known = self:Call(C_SpellBook and C_SpellBook.IsSpellKnown, id)
     if known == nil then known = self:Call(IsPlayerSpell, id) end
@@ -56,6 +132,7 @@ function P:SelectSeal(id, name)
     -- Never carry one Seal's verified expiration into a different Seal.
     if self.activeSeal and self.activeSeal.name ~= selected.name then self.memory.seal = nil end
     self.activeSeal, self.used.seal = selected, true
+    self.spells.seal.names[selected.name] = true
     if self.sealTile then self.sealTile.icon:SetTexture(selected.icon) end
 end
 
@@ -95,6 +172,7 @@ function P:RefreshUsedCooldowns(now)
             end
         end
     end
+    self:RefreshGround()
 end
 
 function P:RecoverCooldowns()
@@ -121,4 +199,5 @@ end
 function P:ClearUsedTimers()
     self.used, self.cooldownTimers, self.readyUntil = {}, {}, {}
     self.activeSeal, self.lastSealCast, self.lastHolyCast = nil, nil, nil
+    self.castRequests = {}
 end

@@ -18,4 +18,5 @@ foreach ($installFile in Get-ChildItem -LiteralPath $installSource -Recurse -Fil
     $installRelative=$installFile.FullName.Substring($installSource.Length+1)
     if ((Get-FileHash -LiteralPath $installFile.FullName).Hash -ne (Get-FileHash -LiteralPath (Join-Path $installTarget $installRelative)).Hash) { throw ('Verification failed: '+$installRelative) }
 }
-Write-Output 'Installed and verified Paladin TankKit 1.0.0, including the new AddOns-list logo.'
+$installedVersion=[regex]::Match((Get-Content -LiteralPath (Join-Path $installSource 'PaladinTankKit.toc') -Raw),'(?m)^## Version: ([\w.\-]+)').Groups[1].Value
+Write-Output ('Installed and verified Paladin TankKit '+$installedVersion+'.')

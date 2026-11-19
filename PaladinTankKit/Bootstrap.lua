@@ -9,6 +9,10 @@ function PaladinTankKit_Pull() PTK:SmartMarkPull() end
 
 local events = CreateFrame("Frame")
 PTK.events = events
+local auraEvents = {UNIT_AURA=true, UNIT_SPELLCAST_SUCCEEDED=true, SPELLS_CHANGED=true,
+    PLAYER_TALENT_UPDATE=true, PLAYER_ENTERING_WORLD=true, PLAYER_DEAD=true, PLAYER_ALIVE=true,
+    PLAYER_UNGHOST=true, PLAYER_MOUNT_DISPLAY_CHANGED=true, UPDATE_SHAPESHIFT_FORM=true,
+    UPDATE_SHAPESHIFT_FORMS=true}
 events:RegisterEvent("ADDON_LOADED")
 
 function PTK:Command(message)
@@ -47,7 +51,7 @@ events:SetScript("OnEvent", function(_, event, ...)
         SlashCmdList.PALADINTANKKIT = function(message) PTK:Command(message) end
         if not PTK.isPaladin then return end
         PTK:ResetMarking(); PTK:DiscoverSpells(); PTK:RecoverCooldowns(); PTK:RefreshAuras(); PTK:CreateUI()
-        for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_SPELLCAST_SUCCEEDED",
+        for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_START",
             "SPELLS_CHANGED", "SPELL_UPDATE_COOLDOWN", "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_FORMS", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED",
             "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_MOUNT_DISPLAY_CHANGED",
             "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE",
@@ -67,9 +71,15 @@ events:SetScript("OnEvent", function(_, event, ...)
         return
     end
     if not PTK.isPaladin or not PTK.db then return end
-    if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        local unit, _, spellID = ...
-        PTK:NoteCast(unit, spellID)
+    if event == "UNIT_SPELLCAST_SENT" then
+        local unit, _, guid, spellID = ...
+        PTK:RememberCastRequest(unit,guid,spellID)
+        return
+    elseif event == "UNIT_SPELLCAST_START" then
+        PTK:RememberCastRequest(...)
+        return
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        PTK:SuccessfulCast(...)
     elseif event == "UNIT_AURA" then
         local unit = ...
         if not PTK:Readable(unit) or unit ~= "player" then return end
@@ -90,5 +100,8 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then PTK:UpdatePermissionAlert() end
     if event == "SPELL_UPDATE_COOLDOWN" or event == "SPELLS_CHANGED" then PTK:RecoverCooldowns() end
-    PTK:RefreshAuras(); PTK:RefreshUsedCooldowns(); PTK:Render()
+    -- Target/nameplate/marker changes must not invalidate the player's buff snapshot.
+    if auraEvents[event] then PTK:RefreshAuras()
+    elseif event == "UPDATE_INVENTORY_DURABILITY" or event == "PLAYER_EQUIPMENT_CHANGED" then PTK:RefreshShieldState() end
+    PTK:RefreshUsedCooldowns(); PTK:Render()
 end)

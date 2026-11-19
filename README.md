@@ -1,10 +1,10 @@
 # Paladin TankKit — WoW Forever
 
-**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.0**.
+**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.1**.
 
 ## Install
 
-Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.0.zip`. Generated archives and local installation backups are excluded from this repository.
+Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.1.zip`. Generated archives and local installation backups are excluded from this repository.
 
 ![Paladin TankKit settings](release/media/gallery/01-overview.png)
 
@@ -16,10 +16,12 @@ Type `/ptk` for the redesigned settings: Overview, Ability timers, Dungeon marki
 
 ## Timers and motion
 
+Version 1.0.1 adds direct player aura lookups by name and ID alongside indexed scanning. Seal procs never clear or restart the buff timer. Readable cast requests are matched to the exact successful cast GUID; a request alone never starts a timer. Player buff snapshots are refreshed by aura/cast/lifecycle events and periodic resync, not target or nameplate changes. Every displayed timer retains full-colour spell artwork and full artwork opacity; cooldown and unknown states use their countdown labels instead of greyscale.
+
 The HUD is a **520 × 42 single horizontal rail**. Timers move right to left. Icons separate when their remaining times coincide; small ticks retain the actual active-effect positions. Effects beyond the selected horizon wait at the right edge while the countdown continues in minutes:seconds.
 
 - **Seal:** uses the active buff's expiration and duration reported by Blizzard, updating the icon and tooltip with it. Covers Fury, Righteousness, the Crusader, Justice, Light, Wisdom and Command and their listed ranks. A readable active Seal also restores tracking after loading. Judgement and hits have no special Seal timer handling: neither clears nor restarts it. Casting a Seal identifies it but does not invent a duration while waiting for the buff update.
-- **Consecration:** appears after your successful cast and estimates the ground effect's lifetime. Once the ground effect ends, a remaining readable ability cooldown can continue on the rail.
+- **Consecration:** prefers a readable player buff or ground-effect slot, with a cast-based duration estimate as a fallback. A missed cast event can recover from the ability cooldown's start. Target changes, Seals and Judgement do not clear or restart it. Once the ground effect ends, a remaining readable cooldown can continue on the rail.
 - **Hammer of Justice:** appears after your successful cast and tracks the actual cast rank's readable cooldown, including cooldown adjustments exposed by WoW.
 - **Holy Shield:** shows the actual remaining buff duration after use or when Blizzard exposes the active buff. Readable early buff removal clears it, including when its charges have been consumed. Casting alone supplies no assumed duration. This is a buff timer; it does not add a charge counter or idle reminder.
 - **Templar's Bulwark:** appears only when the ability is learned through its talent and after use, or when an ongoing readable cooldown is recovered. Tracks Blizzard's actual cooldown, including readable talent reductions. Removing the talent clears its tracking. No fixed cooldown is assumed.

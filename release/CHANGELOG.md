@@ -1,3 +1,13 @@
+# 1.0.1
+
+- Fixed Seal procs being mistaken for recasts and clearing an existing buff timer.
+- Added direct player aura lookups by name and spell ID when indexed buff scanning is unavailable.
+- Consecration now prefers a readable player buff or ground-effect slot, preserves its independent cast deadline, and recovers missed casts from the ability cooldown start.
+- Correlates readable cast requests with the exact successful cast GUID; requests alone never start timers.
+- Added cooldown tuple compatibility and recovery through other learned spell ranks.
+- Removed greyscale and artwork dimming from cooldown and unknown timer states.
+- Added 28 regression checks for overlapping timers, target changes, restricted reads, cast correlation and icon colour.
+
 # 1.0.0
 
 - Automatic dungeon marking now starts from the Paladin's selected living elite. Mouseover and nearby party combat cannot start a queue by themselves.

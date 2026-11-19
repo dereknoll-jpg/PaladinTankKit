@@ -96,9 +96,7 @@ function P:PresentTimer(key, state, aura, now, label)
     if key == "ground" then r, g, b = 0.96, 0.62, 0.35 end
     if key == "justice" then r, g, b = 0.83, 0.77, 1 end
     if key == "holy" then r, g, b = 0.82, 0.90, 0.66 end
-    if state == "cooldown" then r, g, b = 0.61, 0.65, 0.69 end
     if state == "ready" then r, g, b = 0.79, 0.9, 0.65 end
-    if state == "unknown" then r, g, b = 0.5, 0.52, 0.55 end
     local warning = state == "active" and remaining and remaining > 0 and remaining <= 5
     local pulse = 0
     if animated and not self.db.reducedMotion then
@@ -118,8 +116,9 @@ function P:PresentTimer(key, state, aura, now, label)
     tile.shade:SetAlpha(0.44)
     tile.wash:SetVertexColor(r, g, b); tile.wash:SetAlpha(lit and state ~= "cooldown" and 0.12 or 0)
     tile.faceLight:SetVertexColor(r, g, b); tile.faceLight:SetAlpha(lit and (state == "cooldown" and 0.055 or (0.16+reveal*0.06+pulse*0.025)) or 0)
-    tile.icon:SetDesaturated(state == "cooldown" or state == "unknown")
-    tile.icon:SetAlpha(state == "unknown" and 0.45 or (state == "cooldown" and 0.6 or 1))
+    -- Timer state belongs in the countdown, never in washed-out spell artwork.
+    tile.icon:SetDesaturated(false)
+    tile.icon:SetAlpha(1)
     tile.count:SetTextColor(warning and 1 or 0.88, warning and 0.6 or 0.86, warning and 0.35 or 0.8)
     local settle = animated and not self.db.reducedMotion and (1 + reveal*0.07 + pulse*0.015) or 1
     tile:SetScale(settle); tile:SetAlpha(m.alpha)

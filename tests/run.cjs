@@ -47,6 +47,8 @@ const defensives = scenario('PALADIN');
 defensives(fs.readFileSync(path.join(__dirname, 'defensives.lua'), 'utf8'), 'Defensive timers and equipped shield');
 const release = scenario('PALADIN');
 release(fs.readFileSync(path.join(__dirname, 'release.lua'), 'utf8'), 'Version 1 release safeguards');
+const regressions = scenario('PALADIN');
+regressions(fs.readFileSync(path.join(__dirname, 'tracking-regressions.lua'), 'utf8'), 'Live tracking regressions');
 for (const [file, w, h] of [['Halo',64,64], ['Trail',128,8], ['Sweep',32,32],
   ['IconFace',64,64], ['IconRim',64,64], ['IconLight',64,64], ['IconShade',64,64], ['IconGlow',64,64], ['Rail',256,4]]) {
   const b = fs.readFileSync(path.join(dir, 'Media', `${file}.tga`));

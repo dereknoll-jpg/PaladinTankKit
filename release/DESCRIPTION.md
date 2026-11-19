@@ -1,4 +1,4 @@
-# Paladin TankKit 1.0
+# Paladin TankKit 1.0.1
 
 **Mark. Track. Protect.**
 
@@ -21,7 +21,7 @@ Other enemies join the queue as your party engages them. After the opening prior
 Abilities move from right to left as their timers run down. Unused abilities stay hidden, and each tracker can be switched on or off.
 
 - **Seals:** tracks your active Seal using Blizzard's buff expiration. Judgement and melee hits do not restart its timer.
-- **Consecration:** estimated ground-effect duration, followed by any remaining readable cooldown.
+- **Consecration:** uses a readable player buff or ground-effect timer when available, with a cast-based estimate and cooldown recovery as fallbacks.
 - **Hammer of Justice:** cooldown after use.
 - **Holy Shield:** actual buff duration, including early buff removal.
 - **Templar's Bulwark:** cooldown when talented and used.

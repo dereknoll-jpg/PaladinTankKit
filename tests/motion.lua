@@ -49,6 +49,7 @@ p:NoteUsedCooldown("ground",26573)
 render()
 COOLDOWNS[26573] = {startTime = 0, duration = 0, isEnabled = true}
 advance(0.4)
+advance(7.7) -- Recovering the cast from its cooldown keeps the eight-second ground effect visible.
 check(p.groundTile.motion.state == "ready", "Ready state is separate from active time")
 advance(0.4)
 check(p.groundTile.halo.alpha > 0.08, "Ready has a brief arrival pulse")

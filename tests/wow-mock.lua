@@ -57,6 +57,7 @@ function methods:Show() self.shown = true end
 function methods:Hide() self.shown = false end
 function methods:IsShown() return self.shown end
 function methods:SetAlpha(value) self.alpha = value end
+function methods:SetDesaturated(value) self.desaturated = value end
 function methods:SetChecked(value) self.checked = value end
 function methods:GetChecked() return self.checked end
 function methods:EnableMouse(value) self.mouse = value end
@@ -71,7 +72,7 @@ function methods:StartMoving() self.moving = true end
 function methods:StopMovingOrSizing() self.moving = false end
 local noop = {"ClearAllPoints", "SetAllPoints", "SetColorTexture", "SetTexCoord", "SetFont",
     "SetTextColor", "SetWordWrap", "SetWidth", "SetHeight", "SetMaxLines", "SetJustifyH", "SetFrameLevel", "SetFrameStrata",
-    "SetBlendMode", "SetVertexColor", "SetDesaturated", "SetShadowColor", "SetShadowOffset",
+    "SetBlendMode", "SetVertexColor", "SetShadowColor", "SetShadowOffset",
     "SetClampedToScreen", "SetMovable", "RegisterForDrag", "RegisterForClicks", "SetBackdrop",
     "SetBackdropColor", "SetBackdropBorderColor", "SetOwner", "AddLine"}
 for _, name in ipairs(noop) do methods[name] = function() end end
