@@ -25,13 +25,13 @@ check(p.bulwarkTile.motion.state=="ready","Readable Bulwark completion gives sho
 advance(1)
 check(not p.bulwarkTile:IsShown(),"Bulwark disappears after ready animation")
 COOLDOWNS[1311015]={startTime=NOW,duration=300,isEnabled=true}; cast(1311015)
-KNOWN[1311015]=false; event("PLAYER_TALENT_UPDATE")
+KNOWN[1311015]=false; COMBAT=false; event("PLAYER_TALENT_UPDATE");COMBAT=true
 check(not p.bulwarkTile:IsShown() and p.used.bulwark==nil,"Removing talent clears Bulwark tracking")
 KNOWN[1311015]=SECRET; cast(1311015)
 check(p.used.bulwark==nil,"Unreadable talent state never starts Bulwark")
 KNOWN[1311015]=false
 cast(20928)
-check(p.holyTile.count.text=="?" and p.memory.holy==nil,"Holy Shield cast waits for actual buff timing")
+check(p.holyTile.count.text=="~10" and p.memory.holy==nil,"Successful Holy Shield has a bounded independent estimate until buff timing arrives")
 HELPFUL={{spellId=20928,name="Holy Shield",expirationTime=NOW+7,duration=10}}
 event("UNIT_AURA","player",{})
 check(p.holyTile.count.text=="7" and not p.auras.holy.estimated,"Holy Shield tracks Blizzard remaining duration")

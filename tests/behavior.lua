@@ -2,7 +2,13 @@ local p = TEST_NS
 p.db.effects = false
 local count = 0
 local function check(value, message) assert(value, message); count = count + 1 end
-local function event(name, ...) p.events.scripts.OnEvent(p.events, name, ...) end
+local function event(name, ...)
+    local unit,guid,id=...
+    if name=="UNIT_SPELLCAST_SUCCEEDED" and p:Readable(unit) and unit=="player" and p:Number(id) then
+        p.events.scripts.OnEvent(p.events,"UNIT_SPELLCAST_SENT",unit,"target",guid,id)
+    end
+    p.events.scripts.OnEvent(p.events,name,...)
+end
 local function refresh() p:RefreshAuras(); p:Render() end
 check(p.frame and p.frame:IsShown(), "Paladin UI initializes")
 check(p.spells.seal.id == 1311656, "Forever Fury rank discovered")
@@ -45,11 +51,11 @@ check(p.auras.seal.estimated and p.auras.seal.expires == 130, "Hidden aura retai
 check(p:Warnings() == "", "Combat absence never creates false missing-buff alert")
 NOW = 131; refresh()
 check(p.auras.seal.uncertain and not p.auras.seal.active, "Expired estimate becomes unknown")
-check(p.sealTile.count.text == "?", "Unknown seal displays question mark")
+check(p.sealTile.motion.state == "hidden", "Unknown Seal without a deadline does not occupy the rail")
 event("UNIT_SPELLCAST_SUCCEEDED", "player", "Cast-1", 1311656)
-check(p.auras.seal.uncertain and p.memory.seal == nil, "Seal cast waits for Blizzard buff timing")
+check(p.auras.seal.estimated and p.memory.seal == nil, "Confirmed requested Seal keeps a bounded estimate while timing is hidden")
 event("UNIT_SPELLCAST_SUCCEEDED", "player", "Cast-2", 20154)
-check(p.activeSeal.name == "Seal of Righteousness" and p.memory.seal == nil, "Seal swap cannot invent duration")
+check(p.activeSeal.name == "Seal of Righteousness" and p.memory.seal == nil and p.auras.seal.estimated, "Seal swap uses its own cast estimate, not the previous Seal's deadline")
 event("UNIT_SPELLCAST_SUCCEEDED", "player", "Cast-3", 1311656)
 HELPFUL = {{spellId = 1311656, name = "Seal of Fury", expirationTime = 251, duration = 120}}
 refresh()

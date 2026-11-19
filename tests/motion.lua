@@ -41,7 +41,7 @@ check(p.sealTile.halo.alpha == 0 and p.sealTile.trail.alpha == 0 and p.sealTile.
 p.db.effects, p.db.reducedMotion = true, false
 p.used.seal = true
 p.auras.seal = {uncertain = true}; render()
-check(p.sealTile.motion.state == "unknown" and p.sealTile.count.text == "?", "Hidden data has a distinct unknown state")
+check(p.sealTile.motion.state == "hidden", "Hidden data without a deadline does not create a question-mark icon")
 check(p.sealTile.halo.alpha == 0 and p.sealTile.sweep.alpha == 0, "Unknown state never shows a success/expiry effect")
 p.auras.seal = {active = false}; p.ground = nil
 COOLDOWNS[26573] = {startTime = NOW, duration = 5, isEnabled = true}

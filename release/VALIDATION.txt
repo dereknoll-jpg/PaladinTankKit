@@ -1,12 +1,17 @@
-Version 1.0.1 validation
+Version 1.0.2 validation
 
-556 automated behavioral checks pass (528 previous plus 28 tracking regressions),
-plus Lua 5.1 syntax, initialization, TOC/bindings, class isolation and texture checks.
+599 automated behavioral checks pass (556 previous plus 43 fully hidden combat
+checks), plus Lua 5.1 syntax, TOC/bindings, initialization, class isolation and texture
+checks. Earlier assertions requiring question-mark icons were updated to verify
+that untimed effects no longer occupy the rail, as requested.
 
-New regressions cover Consecration + Seal + Judgement + target changes, Seal procs,
-direct player aura lookups, transient zero timing, exact successful cast correlation,
-missed-cast recovery, ground-effect slot timing, cooldown ranks and full-colour icons.
+The new scenario hides cast spell IDs and GUIDs, aura enumeration, spell metadata,
+spellbook results and every cooldown field while five abilities run simultaneously.
+It verifies action/macro intent, SENT/post-hook ordering, failed/unrelated casts,
+independent deadlines, Seal swaps/procs, no placeholders after expiration, learned
+per-Seal durations and authoritative reconciliation before combat ends.
 
-1.0.1 live-client combat confirmation: pending user test after /reload.
-Native screenshots and GIF in the gallery document 1.0.0, not this tracking patch.
+Live-client combat confirmation of 1.0.2 remains pending. These simulations do not
+establish that every actual client's event sequence or macro addon is supported.
+The screenshot/GIF gallery documents 1.0.0 and is not evidence of 1.0.2 live behavior.
 Public CurseForge publishing: not performed by the assistant.

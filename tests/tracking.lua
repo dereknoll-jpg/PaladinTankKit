@@ -1,6 +1,9 @@
 local p, n = TEST_NS, 0
 local function check(v, message) assert(v, message); n=n+1 end
-local function event(unit,id) p.events.scripts.OnEvent(p.events,"UNIT_SPELLCAST_SUCCEEDED",unit,"cast",id) end
+local function event(unit,id)
+    p.events.scripts.OnEvent(p.events,"UNIT_SPELLCAST_SENT",unit,"target","cast",id)
+    p.events.scripts.OnEvent(p.events,"UNIT_SPELLCAST_SUCCEEDED",unit,"cast",id)
+end
 local function advance(seconds) NOW=NOW+seconds; p:RefreshUsedCooldowns(); p:Render() end
 p.db.effects=false
 COMBAT=true
@@ -34,10 +37,10 @@ COMBAT=false
 HELPFUL={{spellId=1311656,name="Seal of Fury",expirationTime=NOW+20,duration=30}}
 p:RefreshAuras()
 event("player",20154)
-check(p.activeSeal.name=="Seal of Righteousness" and p.auras.seal.uncertain and p.memory.seal==nil,"Late old aura cannot undo swap or donate its duration")
+check(p.activeSeal.name=="Seal of Righteousness" and p.auras.seal.estimated and p.memory.seal==nil,"Late old aura cannot undo the requested swap or donate its duration")
 HELPFUL={}; event("player",20166)
-check(p.auras.seal.uncertain and p.memory.seal==nil and p.sealTile.count.text=="?","Cast without aura waits for Blizzard duration")
-advance(1); p:RefreshAuras(); p:Render()
+check(p.auras.seal.estimated and p.memory.seal==nil and p.sealTile.motion.state=="active","Successful requested Seal starts an independent learned-duration estimate")
+advance(3.1); p:RefreshAuras(); p:Render()
 check(not p.sealTile:IsShown(),"Readable absence clears expired cast grace")
 HELPFUL={{spellId=20375,name="Seal of Command",expirationTime=NOW+96,duration=120}}
 p.events.scripts.OnEvent(p.events,"PLAYER_ENTERING_WORLD")
@@ -71,14 +74,14 @@ advance(1)
 check(not p.justiceTile:IsShown(),"Ready Hammer clears without an idle placeholder")
 COOLDOWNS[10308]={startTime=SECRET,duration=SECRET,isEnabled=true}
 event("player",10308)
-check(p.justiceTile.count.text=="?","Used Hammer with unavailable cooldown shows honest unknown")
+check(p.justiceTile.count.text=="~1:00","Successful Hammer with unavailable cooldown uses its independent cast estimate: "..tostring(p.justiceTile.count.text))
 p:ClearUsedTimers(); p:Render()
 check(not p.justiceTile:IsShown(),"Lifecycle reset removes used cooldown history")
 COOLDOWNS[26573]=nil
 event("player",26573)
 check(p.groundTile.count.text=="~8","Used Consecration displays ground lifetime")
 advance(8)
-check(p.groundTile.motion.state=="ready","Ground completion allows short confirmed-ready state")
+check(p.groundTile.motion.state=="hidden","Unverified ground completion clears without claiming readiness")
 advance(1)
 check(not p.groundTile:IsShown(),"Completed Consecration clears")
 local views={}

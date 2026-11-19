@@ -1,3 +1,15 @@
+# 1.0.2
+
+- Replaced the earlier combat timer flow with independent aura and cast/cooldown tracking modules.
+- Added read-only action-button, spell and macro intent observers, including fully hidden combat success payloads and both SENT/post-hook event orders.
+- Confirmed requested casts now keep bounded countdowns when combat hides timers; real player buff/cooldown deadlines reconcile as soon as readable.
+- Learned Seal durations are stored separately by Seal name. Reference fallback durations are labeled estimates; Judgement and Seal procs never refresh them.
+- Prevented late old-Seal and same-Seal snapshots from overriding a fresh recast during handoff.
+- Cached spell identity/artwork and deferred combat spellbook rediscovery so hidden metadata cannot erase an active tracker.
+- Removed unknown and expired timer placeholders from the rail, retaining full-colour artwork.
+- Added per-spell aura secrecy handling, faster resync and a loaded-version message with /ptk version.
+- Added 43 focused tests for fully hidden combat, all five simultaneous timers, macros, request ordering, swaps, proc events, failed casts and mid-combat authoritative reconciliation.
+
 # 1.0.1
 
 - Fixed Seal procs being mistaken for recasts and clearing an existing buff timer.

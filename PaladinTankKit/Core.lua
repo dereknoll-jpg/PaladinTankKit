@@ -1,6 +1,6 @@
 local _, PTK = ...
 
-PTK.version = "1.0.1"
+PTK.version = "1.0.2"
 PTK.timerKeys = {"seal", "ground", "justice", "holy", "bulwark"}
 PTK.defaults = { enabled = true, locked = true, scale = 1, horizon = 30,
     warnings = true, showForbearance = true, idleFade = true, groundDuration = 8,
@@ -65,6 +65,7 @@ function PTK:InitializeDB()
     self.db.scale = math.max(0.75, math.min(1.5, self.db.scale))
     if self.db.horizon ~= 15 and self.db.horizon ~= 30 and self.db.horizon ~= 60 then self.db.horizon = 30 end
     self.db.groundDuration = math.max(4, math.min(20, self.db.groundDuration))
+    if type(self.db.observedDurations)~="table" then self.db.observedDurations={} end
     self.memory, self.spells, self.byID, self.byName = {}, {}, {}, {}
     self.used, self.cooldownTimers, self.readyUntil = {}, {}, {}
 end
@@ -75,7 +76,7 @@ function PTK:DiscoverSpells()
         local spell = { name = def.label, icon = def.icon, known = false, names = {}, ids = def.ids }
         for _, id in ipairs(def.ids) do
             self.byID[id] = key
-            local info = self:Call(C_Spell and C_Spell.GetSpellInfo, id)
+            local info = self:SpellInfo(id)
             if type(info) == "table" then
                 if self:Readable(info.name) and type(info.name) == "string" then
                     spell.names[info.name] = true
@@ -96,155 +97,7 @@ function PTK:DiscoverSpells()
     end
     self.spells.seal.name = "Seal"
     if self.activeSeal then self:SelectSeal(self.activeSeal.id, self.activeSeal.name) end
-end
-
-function PTK:AurasRestricted()
-    local restricted, ok = self:Call(C_Secrets and C_Secrets.ShouldAurasBeSecret)
-    -- If the restriction API exists but cannot be read, absence is not trustworthy.
-    if C_Secrets and C_Secrets.ShouldAurasBeSecret then return not ok or restricted == true end
-    return InCombatLockdown()
-end
-
-function PTK:ReadAuras(filter)
-    local found, uncertain, perKey = {}, self:AurasRestricted(), {}
-    local now = GetTime()
-    local function accept(aura, fallbackID)
-        if not self:Readable(aura) or type(aura) ~= "table" then return end
-        local id = self:Field(aura, "spellId") or fallbackID
-        local name = self:Field(aura, "name")
-        local key = (self:Number(id) and self.byID[id]) or (type(name) == "string" and self.byName[name])
-        if not key and self:IsAdditionalSeal(id, name) then key = "seal" end
-        if not key then return end
-        if key == "seal" then
-            local stale = self.lastSealCast and now-self.lastSealCast < 0.4 and self.activeSeal
-                and name and name ~= self.activeSeal.name
-            if stale then uncertain = true; return end
-            self:SelectSeal(id, name)
-        end
-        if key == "holy" then self.used.holy = true end
-        local expires, duration = self:Field(aura, "expirationTime"), self:Field(aura, "duration")
-        expires = self:Number(expires) and expires or nil
-        duration = self:Number(duration) and duration or nil
-        if not found[key] or (expires and expires > now and (not found[key].expires or found[key].expires <= now)) then
-            found[key] = {active=true, expires=expires, duration=duration, estimated=false,
-                uncertain=expires==nil or ((key=="seal" or key=="holy") and expires==0)}
-        end
-    end
-    local api = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
-    if api then
-        for index = 1, 255 do
-            local aura, ok = self:Call(api, "player", index, filter)
-            if not ok then uncertain = true; break end
-            if aura == nil then break end
-            if type(aura) ~= "table" then uncertain = true; break end
-            if not self:Field(aura,"spellId") and not self:Field(aura,"name") then uncertain = true end
-            accept(aura)
-        end
-    else uncertain = true end
-    -- Forever may expose direct player lookups while indexed enumeration is unavailable.
-    -- Only readable values are used; a hidden result never proves absence.
-    for _, key in ipairs(filter == "HARMFUL" and {"forbearance"} or {"seal","fury","holy","ground"}) do
-        if not found[key] or found[key].uncertain then
-            local queried, failed = false, false
-            local function probe(fn, fallbackID, ...)
-                if type(fn) ~= "function" then return end
-                queried = true
-                local aura, ok = self:Call(fn, ...)
-                if not ok or (aura ~= nil and type(aura) ~= "table") then failed = true
-                elseif aura then accept(aura, fallbackID) end
-            end
-            local names = self.spells[key].names
-            for name in pairs(names) do
-                probe(C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName, nil, "player", name, filter)
-                if filter == "HELPFUL" then probe(C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellName, nil, name) end
-                if found[key] and not found[key].uncertain then break end
-            end
-            if not found[key] or found[key].uncertain then
-                for _, id in ipairs(self.definitions[key].ids) do
-                    probe(C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID, id, id)
-                    if found[key] and not found[key].uncertain then break end
-                end
-            end
-            if queried then perKey[key] = failed or self:AurasRestricted() end
-        end
-    end
-    return found, uncertain, perKey
-end
-
-function PTK:RefreshAuras()
-    self:RefreshPaladinAura()
-    self:RefreshShieldState()
-    local helpful, hidden, helpfulHidden = self:ReadAuras("HELPFUL")
-    local harmful, debuffsHidden, harmfulHidden = self:ReadAuras("HARMFUL")
-    local now = GetTime()
-    self.auras = {}
-    for _, key in ipairs({"seal", "fury", "holy", "forbearance"}) do
-        local restricted, live = hidden, helpful[key]
-        if helpfulHidden[key] ~= nil then restricted = helpfulHidden[key] end
-        if key == "seal" and self.lastSealCast and now-self.lastSealCast < 0.4 then restricted = true end
-        if key == "holy" and self.lastHolyCast and now-self.lastHolyCast < 0.4 then restricted = true end
-        if key == "forbearance" then
-            restricted, live = debuffsHidden, harmful[key]
-            if harmfulHidden[key] ~= nil then restricted = harmfulHidden[key] end
-        end
-        if live then
-            local remembered = self.memory[key]
-            if (key == "seal" or key == "holy") and live.expires == 0 then
-                live.expires, live.uncertain = nil, true
-            end
-            self.auras[key] = live
-            if live.expires == nil and remembered and remembered.expires > now then
-                self.auras[key] = remembered
-            end
-            if live.expires and live.expires > now then
-                self.memory[key] = { active = true, expires = live.expires,
-                    duration = live.duration, estimated = true }
-            elseif live.expires ~= nil then self.memory[key] = nil end
-        elseif restricted then
-            local remembered = self.memory[key]
-            if remembered and remembered.expires > now then self.auras[key] = remembered
-            else self.auras[key] = { uncertain = true }; self.memory[key] = nil end
-        else
-            self.memory[key] = nil
-            self.auras[key] = { active = false }
-        end
-    end
-    self:RefreshGround(helpful.ground)
-end
-
-function PTK:NoteCast(unit, spellID, intentional)
-    if not self:Readable(unit) or unit ~= "player" or not self:Number(spellID) then return end
-    local key = self.byID[spellID]
-    local info = self:Call(C_Spell and C_Spell.GetSpellInfo, spellID)
-    if not key then
-        if type(info) == "table" and self:Readable(info.name) then key = self.byName[info.name] end
-        if not key and type(info) == "table" and self:IsAdditionalSeal(spellID, info.name) then key = "seal" end
-    end
-    if key == "ground" then
-        if not intentional and self.ground and self.ground.expires > GetTime() then return end
-        -- Ground-effect lifetime is a cast-based estimate, not the ability cooldown.
-        self.ground = { active = true, expires = GetTime() + self.db.groundDuration,
-            duration = self.db.groundDuration, estimated = true }
-        self:NoteUsedCooldown("ground", spellID)
-    elseif key == "seal" then
-        -- Seal melee procs can emit SUCCEEDED with the Seal's own spell ID.
-        -- They are not a recast and must never clear an existing aura deadline.
-        if not intentional and self.activeSeal and type(info) == "table"
-            and self:Field(info,"name") == self.activeSeal.name then return end
-        self:SelectSeal(spellID)
-        -- A cast identifies the Seal, but supplies no reliable buff duration.
-        -- Wait for Blizzard's aura expiration instead of assuming 30 seconds.
-        self.lastSealCast, self.memory.seal = GetTime(), nil
-    elseif key == "justice" then
-        self:NoteUsedCooldown("justice", spellID)
-    elseif key == "bulwark" then
-        if self:IsKnownSpell(spellID) == true then self:NoteUsedCooldown("bulwark", spellID) end
-    elseif key == "holy" then
-        self.used.holy, self.lastHolyCast, self.memory.holy = true, GetTime(), nil
-    elseif key == "fury" then
-        -- No fabricated long duration: wait for an authoritative aura read.
-        self.memory.fury = nil
-    end
+    self:RefreshTimerKnowledge()
 end
 
 function PTK:Cooldown(key)
@@ -294,7 +147,7 @@ end
 
 function PTK:FormatTime(seconds, estimated)
     if seconds <= 0 then return "" end
-    local rounded = math.ceil(seconds)
+    local rounded = math.max(1,math.ceil(seconds-0.000001))
     local text = rounded >= 60 and string.format("%d:%02d", math.floor(rounded/60), rounded%60) or tostring(rounded)
     return (estimated and "~" or "") .. text
 end

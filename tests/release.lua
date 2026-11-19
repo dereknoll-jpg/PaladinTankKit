@@ -30,9 +30,9 @@ check(not p:AssignAutoMark(r,8) and #MARKS==before,"Low-level auto setter also r
 KNOWN[1311015]=true; event("SPELLS_CHANGED");COOLDOWNS[1311015]=nil
 p:ClearUsedTimers();event("UNIT_SPELLCAST_SUCCEEDED","player","cast",1311015)
 NOW=NOW+.4;p:RefreshUsedCooldowns()
-check(not p.used.bulwark.done and p:UsedTimerView("bulwark",NOW)==nil,"Zero after cast does not finish cooldown")
+check(not p.used.bulwark.done and p:UsedTimerView("bulwark",NOW)~=nil,"Zero after cast does not finish the independent cooldown estimate")
 local _,state=p:UsedTimerView("bulwark",NOW)
-check(state=="unknown" and p.readyUntil.bulwark==nil,"Pending update shows unknown, never false Ready")
+check(state=="cooldown" and p.readyUntil.bulwark==nil,"Pending update retains a countdown, never false Ready")
 COOLDOWNS[1311015]={startTime=NOW-.4,duration=240,isEnabled=true}
 NOW=NOW+.4;event("SPELL_UPDATE_COOLDOWN")
 check(p.cooldownTimers.bulwark and p.used.bulwark.confirmed,"Delayed positive cooldown is adopted")

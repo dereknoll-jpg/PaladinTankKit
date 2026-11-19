@@ -1,4 +1,4 @@
-# Paladin TankKit 1.0.1
+# Paladin TankKit 1.0.2
 
 **Mark. Track. Protect.**
 
@@ -20,10 +20,10 @@ Other enemies join the queue as your party engages them. After the opening prior
 
 Abilities move from right to left as their timers run down. Unused abilities stay hidden, and each tracker can be switched on or off.
 
-- **Seals:** tracks your active Seal using Blizzard's buff expiration. Judgement and melee hits do not restart its timer.
+- **Seals:** tracks your active Seal using Blizzard's buff expiration, with a successful-cast estimate when combat hides it. Judgement and melee hits do not restart its timer.
 - **Consecration:** uses a readable player buff or ground-effect timer when available, with a cast-based estimate and cooldown recovery as fallbacks.
 - **Hammer of Justice:** cooldown after use.
-- **Holy Shield:** actual buff duration, including early buff removal.
+- **Holy Shield:** actual buff duration, with a bounded cast estimate when timing is hidden.
 - **Templar's Bulwark:** cooldown when talented and used.
 
 A small badge shows active Forbearance. Readable cooldowns already in progress can restore tracking after reloading, zoning, or death. Confirmed cooldown completion briefly lights up before clearing.
@@ -48,4 +48,4 @@ Adjust the scale, move and lock the HUD, fade it while idle, or enable **Reduced
 
 ### Timing and compatibility
 
-Built for **WoW Forever**. TankKit uses information the client exposes to addons; hidden data can limit timer tracking or automatic marking. **`~` indicates estimated timing, and `?` indicates unavailable timing.** Consecration's ground duration is an adjustable estimate; use `/ptk ground 8` to set it to eight seconds.
+Built for **WoW Forever**. TankKit uses information the client exposes to addons; hidden data can limit timer tracking or automatic marking. **`~` indicates estimated timing.** Successful casts can keep independent countdowns while combat hides live data; real player buff/cooldown timers take priority when readable. Seal estimates use that Seal's previously observed duration, or a 30-second reference fallback; Holy Shield uses its observed duration or a 10-second fallback. Expired or untimed effects do not leave question-mark placeholders. Hidden early buff removal and cooldown resets can make estimates stale; estimates do not prove readiness. Consecration's ground duration is an adjustable estimate; use `/ptk ground 8` to set it to eight seconds.

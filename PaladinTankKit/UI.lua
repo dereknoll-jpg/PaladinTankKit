@@ -98,12 +98,12 @@ function PTK:CreateUI()
     for _, key in ipairs(self.timerKeys) do
         local icon = tile(f, self.spells[key].icon, 20)
         icon:SetFrameLevel(f:GetFrameLevel() + 2)
-        local defensiveTip = key == "holy" and "Holy Shield's actual buff duration.\nAppears after use or when the active buff is readable.\nClears when Blizzard reports the buff ended.\n~ means remembered expiry; ? means hidden timing."
-            or (key == "bulwark" and "Templar's Bulwark cooldown: only while learned and after your cast.\nUses Blizzard's cooldown, including readable talent reductions.\nReady briefly lights up, then clears.\n~ means remembered expiry; ? means hidden timing.")
+        local defensiveTip = key == "holy" and "Holy Shield's actual buff duration.\nAppears after use or when the active buff is readable.\nClears when Blizzard reports the buff ended.\n~ means a cast estimate or remembered expiry. Timers without a deadline stay hidden."
+            or (key == "bulwark" and "Templar's Bulwark cooldown: only while learned and after your cast.\nUses Blizzard's cooldown, including readable talent reductions.\nReady briefly lights up, then clears.\n~ means a cast estimate or remembered expiry. Timers without a deadline stay hidden.")
         tooltip(icon, key == "seal" and function() return self.activeSeal and self.activeSeal.name or "Last cast Seal" end or self.spells[key].name, defensiveTip or (key == "ground"
-            and "Moves right to left as the ground effect expires.\n~ marks an estimated duration based on your successful cast.\nReady refers to cooldown only; it does not promise enough mana.\n? means WoW is hiding the timer."
-            or (key == "justice" and "Hammer of Justice cooldown, shown only after your cast.\n~ marks remembered timing while hidden.\n? means cooldown information is unavailable.\nReadiness briefly lights up, then the icon clears."
-            or "Tracks your active Seal using Blizzard's buff expiration.\nJudgement and hits do not restart or clear this timer.\n~ means the last readable buff expiration is being remembered.\n? means WoW has not supplied a readable duration.")))
+            and "Moves right to left as the ground effect expires.\n~ marks an estimated duration based on your successful cast.\nReady refers to cooldown only; it does not promise enough mana.\nReadable player ground-effect timing takes priority."
+            or (key == "justice" and "Hammer of Justice cooldown, shown only after your cast.\n~ marks a cast estimate or remembered timing while hidden.\nReadiness briefly lights up, then the icon clears."
+            or "Tracks your active Seal using Blizzard's buff expiration.\nJudgement and hits do not restart or clear this timer.\n~ marks a cast estimate or remembered expiry. Real player buff timers take priority.")))
         self[key .. "Tile"] = icon
         self:AttachTimerEffects(icon)
     end
@@ -117,31 +117,19 @@ function PTK:CreateUI()
     self.forbearanceTile = tile(f, self.spells.forbearance.icon, 17)
     self.forbearanceTile:SetPoint("TOPLEFT", 35, -8)
     tooltip(self.forbearanceTile, self.spells.forbearance.name,
-        "Forbearance is active. Certain protective abilities are unavailable.\n~ marks a remembered estimate. ? means duration is hidden.")
+        "Forbearance is active. Certain protective abilities are unavailable.\n~ marks a remembered estimate.")
     self:Position()
     self:CreateNotesUI()
 end
 
 function PTK:RenderLane(key, aura, now, state)
-    if state and state ~= "active" then
-        local remaining = aura and aura.expires and math.max(0, aura.expires-now)
-        self:PresentTimer(key, state, aura, now, state == "ready" and "Ready"
-            or (state == "unknown" and "?" or (remaining and self:FormatTime(remaining,aura.estimated) or "")))
-        return
+    if state=="ready" then self:PresentTimer(key,"ready",nil,now,"Ready");return end
+    if state=="hidden" or not aura or not aura.active or not aura.expires or aura.expires<=now then
+        self:PresentTimer(key,"hidden",nil,now,"");return
     end
-    if not aura or not aura.active then
-        if (key == "seal" or key == "holy") and aura and aura.uncertain and self.used[key] then
-            self:PresentTimer(key, "unknown", nil, now, "?")
-        else self:PresentTimer(key, "hidden", nil, now, "") end
-        return
-    end
-    local expires = aura.expires
-    if expires and expires > 0 and expires <= now then self:PresentTimer(key, "hidden", nil, now, ""); return end
-    local remaining = expires and expires > 0 and expires - now or nil
-    self:PresentTimer(key, aura.uncertain and "unknown" or "active", aura, now,
-        remaining and self:FormatTime(remaining, aura.estimated) or (aura.uncertain and "?" or ""))
+    self:PresentTimer(key,state=="cooldown" and "cooldown" or "active",aura,now,
+        self:FormatTime(aura.expires-now,aura.estimated))
 end
-
 function PTK:Render()
     if not self.frame then return end
     local enabled = self.isPaladin and self.db.enabled
@@ -199,7 +187,11 @@ function PTK:Render()
             bulwark={aura=bulwark,state=bulwarkState or "hidden"}}
         for _,key in ipairs(self.timerKeys) do
             local option="track"..key:sub(1,1):upper()..key:sub(2)
-            if not self.db[option] then views[key]={state="hidden"} end
+            local view=views[key]
+            if not self.db[option] or view.state=="unknown"
+                or (view.state~="ready" and view.aura and (not view.aura.expires or view.aura.expires<=now)) then
+                views[key]={state="hidden"}
+            end
         end
         self:BuildTimerLayout(views,now)
         for _,key in ipairs(self.timerKeys) do
@@ -208,8 +200,7 @@ function PTK:Render()
         end
     end
     self.warning:SetText(warning)
-    local showFB = self.db.showForbearance and fb and fb.active
-        and (not fb.expires or fb.expires == 0 or fb.expires > now)
+    local showFB = self.db.showForbearance and fb and fb.active and fb.expires and fb.expires>now
     self.forbearanceTile:SetShown(showFB and true or false)
     if showFB then
         self.forbearanceTile.count:SetText(fb.expires and fb.expires > 0

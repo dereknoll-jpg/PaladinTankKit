@@ -27,6 +27,7 @@ function PTK:Command(message)
     elseif cmd == "share" then self:ShareBossNote(); return
     elseif cmd == "unlock" or cmd == "lock" then self.db.locked = cmd == "lock"
     elseif cmd == "preview" then self:TogglePreview(); return
+    elseif cmd == "version" then self:Print("Loaded version "..self.version);return
     elseif cmd == "reset" then self.db.position = nil; self.db.scale = 1; self:Position()
     elseif cmd == "ground" then
         local seconds = tonumber(argument)
@@ -50,8 +51,9 @@ events:SetScript("OnEvent", function(_, event, ...)
         SLASH_PALADINTANKKIT1, SLASH_PALADINTANKKIT2 = "/ptk", "/paladintankkit"
         SlashCmdList.PALADINTANKKIT = function(message) PTK:Command(message) end
         if not PTK.isPaladin then return end
-        PTK:ResetMarking(); PTK:DiscoverSpells(); PTK:RecoverCooldowns(); PTK:RefreshAuras(); PTK:CreateUI()
+        PTK:ResetMarking(); PTK:DiscoverSpells(); PTK:InstallCastObservers(); PTK:RecoverCooldowns(); PTK:RefreshAuras(); PTK:CreateUI()
         for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_START",
+            "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
             "SPELLS_CHANGED", "SPELL_UPDATE_COOLDOWN", "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_FORMS", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED",
             "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_MOUNT_DISPLAY_CHANGED",
             "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE",
@@ -63,11 +65,11 @@ events:SetScript("OnEvent", function(_, event, ...)
             animationElapsed, auraElapsed = animationElapsed + elapsed, auraElapsed + elapsed
             markingElapsed = markingElapsed + elapsed
             if markingElapsed >= 0.35 then PTK:AutoMarkTick(); markingElapsed = 0 end
-            if auraElapsed >= 0.5 then PTK:RefreshAuras(); auraElapsed = 0 end
+            if auraElapsed >= 0.2 then PTK:RefreshAuras(); auraElapsed = 0 end
             if animationElapsed >= 1/60 then PTK:Render(); animationElapsed = 0 end
         end)
         PTK:UpdatePermissionAlert(); PTK:Render()
-        PTK:Print("Loaded. /ptk for settings; bind Skull in WoW's Key Bindings.")
+        PTK:Print("Loaded "..PTK.version..". /ptk for settings; bind Skull in WoW's Key Bindings.")
         return
     end
     if not PTK.isPaladin or not PTK.db then return end
@@ -80,16 +82,22 @@ events:SetScript("OnEvent", function(_, event, ...)
         return
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         PTK:SuccessfulCast(...)
+    elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
+        PTK:CancelCast(...)
+        return
     elseif event == "UNIT_AURA" then
         local unit = ...
         if not PTK:Readable(unit) or unit ~= "player" then return end
     elseif event == "SPELLS_CHANGED" or event == "PLAYER_TALENT_UPDATE" then
+        if InCombatLockdown() then PTK.spellKnowledgeDirty=true;return end
         PTK:DiscoverSpells()
         for _, key in ipairs({"ground", "justice", "holy", "bulwark"}) do PTK[key .. "Tile"].icon:SetTexture(PTK.spells[key].icon) end
     elseif event == "PLAYER_REGEN_DISABLED" then
         PTK.preview = false; PTK:SyncSettings()
     elseif event == "PLAYER_REGEN_ENABLED" then
         PTK:ResetMarking()
+        if PTK.spellKnowledgeDirty then PTK.spellKnowledgeDirty=nil;PTK:DiscoverSpells() end
+        PTK:RecoverCooldowns();PTK:RefreshAuras()
     elseif event == "UNIT_DIED" then
         PTK:MarkUnitDied(...)
     elseif event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_DEAD" then

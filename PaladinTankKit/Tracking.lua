@@ -1,5 +1,20 @@
 local _, P = ...
 
+function P:SpellInfo(identifier)
+    if not self:Readable(identifier) or (type(identifier)~="number" and type(identifier)~="string") then return nil end
+    self.spellInfoCache=self.spellInfoCache or {}
+    local cached=self.spellInfoCache[identifier]
+    local info=self:Call(C_Spell and C_Spell.GetSpellInfo,identifier)
+    local name,icon,id=self:Field(info,"name"),self:Field(info,"iconID"),self:Field(info,"spellID")
+    if type(name)~="string" then return cached end
+    local result={name=name,iconID=icon or (cached and cached.iconID),
+        spellID=self:Number(id) and id or (type(identifier)=="number" and identifier or (cached and cached.spellID))}
+    self.spellInfoCache[identifier]=result
+    if result.spellID then self.spellInfoCache[result.spellID]=result end
+    self.spellInfoCache[name]=result
+    return result
+end
+
 function P:ReadCooldown(id)
     local api = C_Spell and C_Spell.GetSpellCooldown or GetSpellCooldown
     if type(api) ~= "function" then return nil end
@@ -22,29 +37,6 @@ function P:ReadCooldown(id)
     local remaining = math.max(0,start+duration/rate-GetTime())
     if remaining > 0 and duration <= 1.5 then return nil end
     return remaining, start, duration/rate
-end
-
-function P:RememberCastRequest(unit, guid, id)
-    if not self:Readable(unit) or unit ~= "player" or not self:Number(id)
-        or not self:Readable(guid) or type(guid) ~= "string" then return end
-    self.castRequests = self.castRequests or {}
-    local now = GetTime()
-    for token, cast in pairs(self.castRequests) do
-        if now-cast.at > 3 then self.castRequests[token] = nil end
-    end
-    self.castRequests[guid] = {id=id, at=now}
-end
-
-function P:SuccessfulCast(unit, guid, id)
-    if not self:Readable(unit) or unit ~= "player" then return end
-    local request
-    if self:Readable(guid) and type(guid) == "string" and self.castRequests then
-        request = self.castRequests[guid]; self.castRequests[guid] = nil
-        if request and GetTime()-request.at > 3 then request = nil end
-    end
-    -- Match a readable request to the exact successful cast, never just the last button.
-    if not self:Number(id) then id = request and request.id end
-    self:NoteCast(unit,id,request and request.id == id)
 end
 
 function P:RefreshGround(aura)
@@ -78,7 +70,11 @@ end
 
 function P:IsKnownSpell(id)
     local known = self:Call(C_SpellBook and C_SpellBook.IsSpellKnown, id)
-    if known == nil then known = self:Call(IsPlayerSpell, id) end
+    if known ~= true then
+        local alternate = self:Call(IsPlayerSpell,id)
+        if alternate == true then return true end
+        if known == nil then known=alternate end
+    end
     return known
 end
 
@@ -122,7 +118,7 @@ function P:IsAdditionalSeal(id, name)
 end
 
 function P:SelectSeal(id, name)
-    local info = self:Call(C_Spell and C_Spell.GetSpellInfo, id or name)
+    local info = self:SpellInfo(id or name)
     local selected = {id = id, name = name or "Seal", icon = self.definitions.seal.icon}
     if type(info) == "table" then
         if self:Readable(info.name) and type(info.name) == "string" then selected.name = info.name end
@@ -130,74 +126,11 @@ function P:SelectSeal(id, name)
     end
     if not self:Readable(selected.name) or type(selected.name) ~= "string" then return end
     -- Never carry one Seal's verified expiration into a different Seal.
-    if self.activeSeal and self.activeSeal.name ~= selected.name then self.memory.seal = nil end
+    if self.activeSeal and self.activeSeal.name ~= selected.name then
+        self.memory.seal=nil
+        if self.effectTimers then self.effectTimers.seal=nil end
+    end
     self.activeSeal, self.used.seal = selected, true
     self.spells.seal.names[selected.name] = true
     if self.sealTile then self.sealTile.icon:SetTexture(selected.icon) end
-end
-
-function P:NoteUsedCooldown(key, spellID)
-    local now = GetTime()
-    self.used[key] = {at = now}
-    self.cooldownTimers[key], self.readyUntil[key] = nil, nil
-    -- Keep the actual cast rank; cooldown queries must not use an unrelated highest rank.
-    self.spells[key].id, self.spells[key].known = spellID, true
-    self:RefreshUsedCooldowns(now)
-end
-
-function P:RefreshUsedCooldowns(now)
-    now = now or GetTime()
-    for _, key in ipairs({"ground", "justice", "bulwark"}) do
-        local used = self.used[key]
-        if type(used) == "table" then
-            local remaining = self:Cooldown(key)
-            local previous = self.cooldownTimers[key]
-            local groundActive = key == "ground" and self.ground and self.ground.expires > now
-            if remaining and remaining > 0 then
-                self.cooldownTimers[key] = {active = true, expires = now+remaining, estimated = false, cooldown = true}
-                used.unknown, used.done, used.confirmed = nil, nil, true
-                self.readyUntil[key] = nil
-            elseif not used.done and remaining == 0 and not groundActive
-                and (used.confirmed or (key == "ground" and now-used.at >= self.db.groundDuration)) then
-                used.done = true; self.cooldownTimers[key] = nil; self.readyUntil[key] = now+0.8
-            elseif not used.done and remaining == nil then
-                if previous and previous.expires > now then previous.estimated = true
-                elseif previous then
-                    -- A remembered cooldown expiring while hidden is not proof of readiness.
-                    self.cooldownTimers[key] = nil; used.done = true
-                else used.unknown = true end
-            elseif not used.done and remaining == 0 and not groundActive then
-                -- A zero immediately after casting may be a delayed server update.
-                used.unknown = true
-            end
-        end
-    end
-    self:RefreshGround()
-end
-
-function P:RecoverCooldowns()
-    local now = GetTime()
-    for _, key in ipairs({"ground", "justice", "bulwark"}) do
-        local remaining = self:Cooldown(key)
-        if remaining and remaining > 0 and (not self.used[key] or self.used[key].done) then
-            self.used[key] = {at=now, confirmed=true}
-            self.cooldownTimers[key] = {active=true, expires=now+remaining, cooldown=true, estimated=false}
-        end
-    end
-end
-
-function P:UsedTimerView(key, now)
-    if self.definitions[key].talentOnly and not self.spells[key].known then return nil end
-    local used = self.used[key]
-    if type(used) ~= "table" then return nil end
-    local cd = self.cooldownTimers[key]
-    if cd and cd.expires > now then return cd, "cooldown" end
-    if self.readyUntil[key] and self.readyUntil[key] > now then return nil, "ready" end
-    if not used.done and (used.unknown or now-used.at < 0.25) then return nil, "unknown" end
-end
-
-function P:ClearUsedTimers()
-    self.used, self.cooldownTimers, self.readyUntil = {}, {}, {}
-    self.activeSeal, self.lastSealCast, self.lastHolyCast = nil, nil, nil
-    self.castRequests = {}
 end

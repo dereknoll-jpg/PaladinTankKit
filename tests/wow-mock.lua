@@ -28,10 +28,24 @@ local definitions = {
 }
 KNOWN[1311656], KNOWN[25780], KNOWN[26573] = true, true, true
 C_Spell = {
-    GetSpellInfo = function(id) if definitions[id] then return {name = definitions[id], iconID = id} end end,
+    GetSpellInfo = function(id)
+        if type(id)=="string" then for candidate,name in pairs(definitions) do if id==name then id=candidate;break end end end
+        if definitions[id] then return {name=definitions[id],iconID=id,spellID=id} end
+    end,
     GetSpellCooldown = function(id) return COOLDOWNS[id] or {startTime = 0, duration = 0, isEnabled = true, modRate = 1} end,
 }
 C_SpellBook = {IsSpellKnown = function(id) return KNOWN[id] or false end}
+ACTION_DESCRIPTIONS,MACRO_SPELLS,CAST_HOOKS={},{},{}
+function GetActionInfo(slot) local a=ACTION_DESCRIPTIONS[slot] or {};return a[1],a[2],a[3] end
+function GetMacroSpell(id) return MACRO_SPELLS[id] end
+function UseAction() end
+function CastSpellByID() end
+function CastSpellByName() end
+function hooksecurefunc(name,callback)
+    CAST_HOOKS[name]=callback
+    local original=_G[name]
+    _G[name]=function(...) original(...);callback(...) end
+end
 EQUIPPED_OFFHAND, ITEM_EQUIP_LOC, ITEM_DURABILITY = nil, "INVTYPE_SHIELD", {100,100}
 function GetInventoryItemID(_,slot) assert(slot==17); return EQUIPPED_OFFHAND end
 function GetInventoryItemDurability(slot)
