@@ -128,6 +128,7 @@ function P:RefreshAuras()
         end
     end
     self:RefreshGround(helpful.ground)
+    self:RefreshTankBuffs()
 end
 
 function P:NoteCast(unit,id,intentional)
@@ -155,7 +156,7 @@ function P:NoteCast(unit,id,intentional)
         self.used.holy=true;self.lastHolyCast=now;self:StartEffectEstimate(key,id)
     elseif key=="justice" or (key=="bulwark" and (self.spells.bulwark.known or self:IsKnownSpell(id)==true)) then
         self:NoteUsedCooldown(key,id)
-    elseif key=="fury" then self.memory.fury=nil end
+    elseif key=="fury" then self.memory.fury=nil;self.furyCastGrace=now+1.5 end
 end
 
 function P:StartEffectEstimate(key,id)

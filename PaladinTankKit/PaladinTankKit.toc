@@ -2,7 +2,7 @@
 ## Title: Paladin TankKit
 ## Notes: Minimal Paladin tank tools for WoW Forever. Mark. Track. Protect.
 ## Author: Derek
-## Version: 1.0.2
+## Version: 1.0.3
 ## SavedVariablesPerCharacter: PaladinTankKitDB
 ## IconTexture: Interface\AddOns\PaladinTankKit\Media\AddonIcon
 
@@ -10,6 +10,7 @@ Core.lua
 Tracking.lua
 AuraTracking.lua
 CastTracking.lua
+BuffWarnings.lua
 Dungeons.lua
 DungeonsMore.lua
 Marking.lua

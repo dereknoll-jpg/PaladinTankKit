@@ -57,6 +57,7 @@ events:SetScript("OnEvent", function(_, event, ...)
             "SPELLS_CHANGED", "SPELL_UPDATE_COOLDOWN", "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_FORMS", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED",
             "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_MOUNT_DISPLAY_CHANGED",
             "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "RAID_TARGET_UPDATE",
+            "PLAYER_ROLES_ASSIGNED", "ROLE_CHANGED_INFORM",
             "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "UNIT_DIED"}) do events:RegisterEvent(name) end
         for _, name in ipairs({"UPDATE_INVENTORY_DURABILITY", "PLAYER_EQUIPMENT_CHANGED", "PLAYER_TALENT_UPDATE"}) do events:RegisterEvent(name) end
         local animationElapsed, auraElapsed, markingElapsed = 0, 0, 0
@@ -107,6 +108,7 @@ events:SetScript("OnEvent", function(_, event, ...)
         PTK:DiscoverSpells(); PTK:RecoverCooldowns(); PTK:SyncSettings()
     end
     if event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then PTK:UpdatePermissionAlert() end
+    if event=="GROUP_ROSTER_UPDATE" or event=="PLAYER_ROLES_ASSIGNED" or event=="ROLE_CHANGED_INFORM" then PTK:RefreshTankBuffs() end
     if event == "SPELL_UPDATE_COOLDOWN" or event == "SPELLS_CHANGED" then PTK:RecoverCooldowns() end
     -- Target/nameplate/marker changes must not invalidate the player's buff snapshot.
     if auraEvents[event] then PTK:RefreshAuras()

@@ -1,11 +1,11 @@
 local _, PTK = ...
 
-PTK.version = "1.0.2"
+PTK.version = "1.0.3"
 PTK.timerKeys = {"seal", "ground", "justice", "holy", "bulwark"}
 PTK.defaults = { enabled = true, locked = true, scale = 1, horizon = 30,
     warnings = true, showForbearance = true, idleFade = true, groundDuration = 8,
     autoMark = true, bossNotes = true, effects = true, reducedMotion = false,
-    warnFury=true, warnAura=true, warnShield=true,
+    warnFury=true, warnAura=true, warnShield=true, warningSounds=true,
     trackSeal=true, trackGround=true, trackJustice=true, trackHoly=true, trackBulwark=true }
 PTK.definitions = {
     seal = { label = "Seal", ids = {
@@ -161,14 +161,9 @@ function PTK:Warnings()
     local shield = self.db.warnShield and self.shieldWarning or nil
     if not IsInGroup() and self:Call(UnitCanAttack, "player", "target") ~= true then return shield or "" end
     local missing = {}
-    for _, key in ipairs({"fury"}) do
-        local aura = self.auras and self.auras[key]
-        if self.db.warnFury and self.spells[key].known and aura and not aura.active and not aura.uncertain then
-            missing[#missing + 1] = self.spells[key].name
-        end
-    end
-    local stance = self.paladinAura
-    if self.db.warnAura and stance and stance.known and not stance.active and not stance.uncertain then missing[#missing+1] = "Aura" end
+    local status=self:TankBuffStatus()
+    if status and status.fury=="missing" then missing[#missing+1]="Righteous Fury" end
+    if status and status.devotion=="missing" then missing[#missing+1]="Devotion Aura" end
     local buffs = #missing > 0 and ("Missing: " .. table.concat(missing, " / ")) or ""
     return shield and (shield .. (buffs ~= "" and (" / " .. buffs) or "")) or buffs
 end

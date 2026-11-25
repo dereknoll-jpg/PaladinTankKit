@@ -1,17 +1,15 @@
-Version 1.0.2 validation
+Version 1.0.3 validation
 
-599 automated behavioral checks pass (556 previous plus 43 fully hidden combat
-checks), plus Lua 5.1 syntax, TOC/bindings, initialization, class isolation and texture
-checks. Earlier assertions requiring question-mark icons were updated to verify
-that untimed effects no longer occupy the rail, as requested.
+634 automated behavioral checks pass, plus Lua 5.1 syntax, TOC/bindings,
+initialization, non-Paladin isolation and texture checks.
 
-The new scenario hides cast spell IDs and GUIDs, aura enumeration, spell metadata,
-spellbook results and every cooldown field while five abilities run simultaneously.
-It verifies action/macro intent, SENT/post-hook ordering, failed/unrelated casts,
-independent deadlines, Seal swaps/procs, no placeholders after expiration, learned
-per-Seal durations and authoritative reconciliation before combat ends.
+51 reminder checks replace the previous 16: assigned tank versus healer/damage/solo,
+legacy Main Tank, Devotion ranks 1-7, equal/higher/lower coverage, actual received
+player aura, group membership/class/source, range loss, expired/hidden rank data,
+per-spell secrecy, role events, warning blink, Reduced Motion, one-shot dungeon
+sound, debounce, uncertainty without rearming, independent switches, suppression,
+raid visual-only behavior and a successful Fury cast's aura-delivery grace.
 
-Live-client combat confirmation of 1.0.2 remains pending. These simulations do not
-establish that every actual client's event sequence or macro addon is supported.
-The screenshot/GIF gallery documents 1.0.0 and is not evidence of 1.0.2 live behavior.
-Public CurseForge publishing: not performed by the assistant.
+Live-client visual/audio and group coverage verification of 1.0.3 remains pending.
+Existing screenshots/GIF document 1.0.0, not the new alert appearance.
+Public CurseForge publishing has not been performed by the assistant.

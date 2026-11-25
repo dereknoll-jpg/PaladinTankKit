@@ -1,3 +1,13 @@
+# 1.0.3
+
+- Missing Righteous Fury now gets a larger blinking orange warning and soft glow while grouped and assigned the tank role (or legacy main-tank assignment).
+- Added the same alert for missing Devotion Aura. Another active aura type no longer substitutes for Devotion.
+- Suppresses Devotion warnings when another group Paladin's aura is actually on the player and its rank is equal to or higher than the tank's best learned rank.
+- Adds one debounced alert sound per missing-buff episode in party dungeons, with a separate sound toggle. No repeated sound spam for a continuously missing buff.
+- Keeps unknown role, aura rank, caster or coverage data from creating false loss alerts. Death, mounting, solo play, other roles and preview mode suppress tank-buff alerts.
+- Reduced Motion retains the stronger text/glow without blinking. Existing reminder switches remain independent.
+- Updated reminder validation with 51 assigned-role, rank, caster, range, suppression, blink and audio checks.
+
 # 1.0.2
 
 - Replaced the earlier combat timer flow with independent aura and cast/cooldown tracking modules.

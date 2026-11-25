@@ -90,9 +90,10 @@ function P:ToggleSettings()
     end
     toggle(general,1,"enabled","Tank mode","Enable the toolkit on this Paladin.")
     toggle(general,2,"warnings","Reminders","Master switch for buff and shield reminders.")
-    toggle(general,3,"warnFury","Righteous Fury","Quiet text when your tanking buff is missing.")
-    toggle(general,4,"warnAura","Paladin aura","Any selected aura is accepted. No Seal reminders.")
+    toggle(general,3,"warnFury","Righteous Fury","Assigned tank: flashing missing-buff reminder.")
+    toggle(general,4,"warnAura","Devotion Aura","Accepts another group Paladin's equal/higher rank.")
     toggle(general,5,"warnShield","Equipped shield","Warn at 20% durability or below.")
+    toggle(general,6,"warningSounds","Dungeon alert sound","One sound per missing tank-buff episode.")
     for i,option in ipairs({{"trackSeal","Active Seal","Uses Blizzard's actual buff expiration."},
         {"trackGround","Consecration","Ground-effect estimate, then remaining cooldown."},
         {"trackJustice","Hammer of Justice","Cooldown after use; clears after readiness."},

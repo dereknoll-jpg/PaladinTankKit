@@ -114,6 +114,10 @@ function PTK:CreateUI()
     self.warning = text(f, 10, 1, 0.64, 0.40)
     self.warning:SetPoint("BOTTOM", f, "TOP", 0, 4); self.warning:SetWidth(620)
     self.warning:SetWordWrap(false); self.warning:SetMaxLines(1)
+    self.warningGlow=f:CreateTexture(nil,"BACKGROUND")
+    self.warningGlow:SetTexture("Interface\\AddOns\\PaladinTankKit\\Media\\Halo")
+    self.warningGlow:SetBlendMode("ADD");self.warningGlow:SetVertexColor(1,.28,.05)
+    self.warningGlow:SetSize(360,32);self.warningGlow:SetPoint("CENTER",self.warning,"CENTER");self.warningGlow:SetAlpha(0)
     self.forbearanceTile = tile(f, self.spells.forbearance.icon, 17)
     self.forbearanceTile:SetPoint("TOPLEFT", 35, -8)
     tooltip(self.forbearanceTile, self.spells.forbearance.name,
@@ -134,7 +138,7 @@ function PTK:Render()
     if not self.frame then return end
     local enabled = self.isPaladin and self.db.enabled
     self.frame:SetShown(enabled)
-    if not enabled then return end
+    if not enabled then self.buffAlertEpisodes=nil;return end
     local now = GetTime()
     if not self.lastCooldownRefresh or now-self.lastCooldownRefresh >= 0.1 then
         self:RefreshUsedCooldowns(now); self.lastCooldownRefresh = now
@@ -200,6 +204,7 @@ function PTK:Render()
         end
     end
     self.warning:SetText(warning)
+    self:RenderTankBuffAlerts(now)
     local showFB = self.db.showForbearance and fb and fb.active and fb.expires and fb.expires>now
     self.forbearanceTile:SetShown(showFB and true or false)
     if showFB then

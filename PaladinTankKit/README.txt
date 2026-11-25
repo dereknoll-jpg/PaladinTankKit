@@ -1,4 +1,4 @@
-Paladin TankKit 1.0.2 - WoW Forever (Interface 16001)
+Paladin TankKit 1.0.3 - WoW Forever (Interface 16001)
 Mark. Track. Protect.
 
 /ptk opens settings. /ptk version prints the currently loaded build.
@@ -31,7 +31,11 @@ cast identity. Readable GUIDs are matched; fully hidden payloads use one recent
 player request within a bounded interval. Failed/interrupted requests are discarded.
 Spell metadata is cached; combat spellbook refreshes are deferred until combat ends.
 
-REMINDERS: Optional missing Righteous Fury, no selected Paladin aura, and an equipped
+REMINDERS: Assigned group tanks get larger blinking Righteous Fury and Devotion Aura alerts.
+Equal/higher-rank Devotion from another group Paladin counts only while on the player.
+Dungeon losses play one debounced sound per episode. Audio has a separate switch.
+Unknown rank/caster/coverage does not produce a guessed loss. Reduced Motion stays static.
+Optional durability reminders still cover an equipped
 shield at 20% durability or below. No missing-Seal or low-mana alerts.
 NOTES: 28 instance catalogs, 193 selected boss notes and 58 priority entries.
 Notes are a compact one-line ribbon; hover for full text. Sharing is explicit.

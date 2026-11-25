@@ -1,4 +1,4 @@
-# Paladin TankKit 1.0.2
+# Paladin TankKit 1.0.3
 
 **Mark. Track. Protect.**
 
@@ -36,7 +36,7 @@ Coverage is selected rather than a complete dungeon journal. Reference-based or 
 
 ## Quiet, useful reminders
 
-Optional alerts cover missing **Righteous Fury**, having **no Paladin aura selected**, and an **equipped shield at 20% durability or below**. A broken equipped shield receives a clear warning. Missing Seals and low mana do not trigger alerts.
+While grouped and assigned the tank role, missing **Righteous Fury** or **Devotion Aura** produces a larger blinking warning. Devotion is considered covered when another group Paladin's aura is actually reaching you at an equal or higher spell rank than your best learned rank. In party dungeons, a confirmed missing buff plays one alert sound per episode; audio can be muted separately. Reduced Motion keeps the warning static. Unknown aura rank or source does not trigger a guessed loss warning. Optional equipped-shield warnings still alert at **20% durability or below**, with a clear warning when broken. Missing Seals and low mana do not trigger alerts.
 
 ## Minimalist by design
 

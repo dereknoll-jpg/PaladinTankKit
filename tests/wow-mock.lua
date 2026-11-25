@@ -4,6 +4,10 @@ NOW, COMBAT, RESTRICTED, GROUP, RAID, LEADER, ASSISTANT = 100, false, false, tru
 DEAD, MOUNTED, CLASS = false, false, "PALADIN"
 HELPFUL, HARMFUL, COOLDOWNS, KNOWN, UNITS = {}, {}, {}, {}, {}
 PALADIN_FORMS = {{active=true, spellID=465}}
+PLAYER_ROLE,MAIN_TANK,SOUNDS="TANK",false,{}
+function UnitGroupRolesAssigned()return PLAYER_ROLE end
+function GetPartyAssignment()return MAIN_TANK end
+function PlaySound(id,channel) SOUNDS[#SOUNDS+1]={id=id,channel=channel} end
 function GetNumShapeshiftForms() return FORM_COUNT_OVERRIDE or #PALADIN_FORMS end
 function GetShapeshiftFormInfo(index)
     if FORM_ERROR then error("restricted forms") end
@@ -27,6 +31,7 @@ local definitions = {
     [1311015] = "Templar's Bulwark",
 }
 KNOWN[1311656], KNOWN[25780], KNOWN[26573] = true, true, true
+KNOWN[465]=true
 C_Spell = {
     GetSpellInfo = function(id)
         if type(id)=="string" then for candidate,name in pairs(definitions) do if id==name then id=candidate;break end end end
@@ -106,7 +111,10 @@ DEFAULT_CHAT_FRAME = {AddMessage = function(_, msg) MESSAGES[#MESSAGES + 1] = ms
 function tinsert(t, v) table.insert(t, v) end
 function GetTime() return NOW end
 function InCombatLockdown() return COMBAT end
-function UnitClass() return CLASS, CLASS end
+function UnitClass(unit)
+    if unit and unit~="player" then local class=UNITS[unit] and UNITS[unit].class;return class,class end
+    return CLASS,CLASS
+end
 function IsInGroup(category) if category == LE_PARTY_CATEGORY_INSTANCE then return INSTANCE_GROUP end; return GROUP end
 function IsInRaid() return RAID end
 function UnitIsGroupLeader() return LEADER end

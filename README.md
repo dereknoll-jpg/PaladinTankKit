@@ -1,10 +1,10 @@
 # Paladin TankKit — WoW Forever
 
-**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.2**.
+**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.3**.
 
 ## Install
 
-Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.2.zip`. Generated archives and local installation backups are excluded from this repository.
+Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.3.zip`. Generated archives and local installation backups are excluded from this repository.
 
 ![Paladin TankKit settings](release/media/gallery/01-overview.png)
 
@@ -16,7 +16,7 @@ Type `/ptk` for the redesigned settings: Overview, Ability timers, Dungeon marki
 
 ## Timers and motion
 
-Version **1.0.2** replaces the earlier combat tracking flow with separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
+Version **1.0.3** replaces the earlier combat tracking flow with separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
 
 - **Seals:** one selected Seal at a time. Real player buff expiration wins. A confirmed requested cast starts a fallback countdown using that Seal's previously observed duration, or a 30-second reference default if no duration has been observed. Neither Judgement nor hit procs refresh it. A brief handoff prevents the previous Seal or a stale same-Seal snapshot from undoing a recast.
 - **Consecration:** uses a readable player ground-effect slot or buff timer when possible. Otherwise it counts the successful cast's configured ground lifetime (8 seconds by default). A readable ability cooldown start can recover a missed cast. Ground lifetime and remaining cooldown are distinct.
@@ -31,7 +31,9 @@ Read-only secure post-hooks observe spell, action-button and macro requests. A r
 
 The HUD remains a **520 × 42 horizontal rail**. Timers move right to left, separate when they coincide, and keep full-colour artwork at full artwork opacity. Soft light, trails and transitions remain optional. Reduced Motion removes decorative pulses and scaling; idle fading never applies during combat. `/ptk preview` shows labeled sample timers outside combat; `/ptk version` prints the currently loaded version.
 
-Quiet reminders cover learned Righteous Fury, no selected player Paladin aura, and an equipped shield at 20% durability or below. Missing Seals and low mana do not produce alerts. Each reminder and tracker can be toggled separately.
+Grouped Paladins assigned **Tank** (or legacy Main Tank) get larger blinking orange warnings for missing **Righteous Fury** and **Devotion Aura**. Selecting another aura does not satisfy the Devotion reminder. Another group Paladin can provide coverage only when their Devotion buff is on you and its spell rank is equal to or higher than your best learned Devotion rank. Lower-rank or out-of-range coverage does not suppress the warning. Unreadable rank/source/coverage data is treated as uncertain, not proof of a missing aura. Rank comparison covers the seven cataloged Devotion ranks; it does not compare another player's talent-enhanced armor amount.
+
+Inside a party dungeon, a confirmed missing tank buff plays one sound after a short debounce. Persistent absence does not repeat the sound; confirmed restoration rearms it. A readable gap does not rearm an already sounded episode. The Overview page has independent reminder switches and a Dungeon alert sound switch. Reduced Motion keeps a strong static warning. Buff alerts are suppressed while solo, unassigned, in another role, dead, mounted or previewing. Raid tank warnings remain visual. Equipped-shield durability reminders still work separately, including solo. Missing Seals and low mana do not produce alerts.
 ## Marking
 
 Automatic marking starts only after you select a readable, living elite in a dungeon party. Mouseover can scout and remember observed casters, but cannot start a marking queue. Nameplates, nearby combat and party targets alone cannot start one either.
