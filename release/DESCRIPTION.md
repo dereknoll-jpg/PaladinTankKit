@@ -22,6 +22,8 @@ Other enemies join the queue as your party engages them. After the opening prior
 
 Abilities move from right to left as their timers run down. Unused abilities stay hidden, and each tracker can be switched on or off.
 
+**Middle-click any ability timer or the Forbearance badge to hide it.** Restore individual items in `/ptk` > **Ability timers**, click **Restore all**, or type `/ptk restore`. Choices are saved per character, and tracking continues while hidden.
+
 - **Seals:** tracks your active Seal using Blizzard's buff expiration, with a successful-cast estimate when combat hides it. Judgement and melee hits do not restart its timer.
 - **Consecration:** uses a readable player buff or ground-effect timer when available, with a cast-based estimate and cooldown recovery as fallbacks.
 - **Hammer of Justice:** cooldown after use.

@@ -3,6 +3,9 @@ Mark. Track. Protect.
 
 /ptk opens settings. /ptk version prints the currently loaded build.
 /ptk markstatus prints the actual marking state, blocker and permission details.
+Middle-click an ability timer or Forbearance badge to hide it. Restore individual
+items in /ptk > Ability timers; Restore all or /ptk restore enables all again.
+Hiding is saved per character and does not stop tracking or cancel a buff.
 
 Marking is client-dependent. Forever can protect addon SetRaidTarget calls even
 outside combat; leadership cannot override this. When blocked, use WoW's native

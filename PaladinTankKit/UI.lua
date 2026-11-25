@@ -13,14 +13,16 @@ local function tooltip(frame, title, body)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText(type(title) == "function" and title() or title, gold[1], gold[2], gold[3])
-        GameTooltip:AddLine(type(body)=="function" and body() or body, 0.85, 0.85, 0.85, true)
+        local detail=type(body)=="function" and body() or body
+        if frame.timerOption then detail=detail.."\n\nMiddle-click to hide. Restore in /ptk > Ability timers, or /ptk restore." end
+        GameTooltip:AddLine(detail, 0.85, 0.85, 0.85, true)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
 end
 
 local function tile(parent, texture, size)
-    local frame = CreateFrame("Frame", nil, parent)
+    local frame = CreateFrame("Button", nil, parent)
     frame:SetSize(size, size)
     frame.bg = frame:CreateTexture(nil, "BACKGROUND", nil, 0)
     frame.bg:SetAllPoints(); frame.bg:SetTexture("Interface\\AddOns\\PaladinTankKit\\Media\\IconFace")
@@ -40,6 +42,27 @@ local function tile(parent, texture, size)
     frame.count:SetTextColor(0.88, 0.84, 0.75)
     frame.count:SetPoint("TOP", frame, "BOTTOM", 0, -2)
     return frame
+end
+
+function PTK:AttachTimerHiding(frame,option)
+    frame.timerOption=option
+    frame:RegisterForClicks("MiddleButtonUp")
+    frame:SetScript("OnClick",function(_,button)
+        if button~="MiddleButton" then return end
+        self.db[option]=false
+        if frame.motion then frame.motion.alpha=0 end
+        frame:Hide()
+        if frame.pin then frame.pin:Hide() end
+        self:SyncSettings();self:Render()
+        self:Print("Timer hidden. Restore in /ptk > Ability timers, or /ptk restore.")
+    end)
+end
+
+function PTK:RestoreTimers()
+    for _,key in ipairs(self.timerKeys) do self.db["track"..key:sub(1,1):upper()..key:sub(2)]=true end
+    self.db.showForbearance=true
+    self:SyncSettings();self:Render()
+    self:Print("All ability timers restored. Unused abilities remain hidden until active.")
 end
 
 function PTK:Position()
@@ -109,6 +132,7 @@ function PTK:CreateUI()
             or "Tracks your active Seal using Blizzard's buff expiration.\nJudgement and hits do not restart or clear this timer.\n~ marks a cast estimate or remembered expiry. Real player buff timers take priority.")))
         self[key .. "Tile"] = icon
         self:AttachTimerEffects(icon)
+        self:AttachTimerHiding(icon,"track"..key:sub(1,1):upper()..key:sub(2))
     end
     self.nowLabel = text(f, 8, 0.48, 0.48, 0.48)
     self.nowLabel:SetPoint("TOPLEFT", self.layout.start-3, -31); self.nowLabel:SetText("0")
@@ -125,6 +149,7 @@ function PTK:CreateUI()
     self.forbearanceTile:SetPoint("TOPLEFT", 35, -8)
     tooltip(self.forbearanceTile, self.spells.forbearance.name,
         "Forbearance is active. Certain protective abilities are unavailable.\n~ marks a remembered estimate.")
+    self:AttachTimerHiding(self.forbearanceTile,"showForbearance")
     self:Position()
     self:CreateNotesUI()
 end

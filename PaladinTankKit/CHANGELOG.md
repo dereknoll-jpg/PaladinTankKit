@@ -1,5 +1,10 @@
 # 1.0.4
 
+- Added middle-click hiding for all five ability timers and Forbearance, using saved per-character visibility settings without clearing tracking.
+- Added restoration through individual Ability timers switches, a Restore all button and /ptk restore, plus tooltip guidance.
+- Added 58 focused checks for hiding during combat, independent settings, tracking preservation and both restore controls.
+- Added CurseForge packaging metadata and curated release notes for tagged release builds.
+
 - Corrected the AUTO badge: it now requires a confirmed, currently readable automatic marker instead of merely an armed queue.
 - Added LEAD, ARM, SET, HOLD and BLOCK states with live tooltip reasons and /ptk markstatus diagnostics.
 - Clarified that assigned tank role does not satisfy TankKit's leader/assistant ownership policy.

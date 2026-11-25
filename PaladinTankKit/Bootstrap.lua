@@ -30,6 +30,7 @@ function PTK:Command(message)
     elseif cmd == "unlock" or cmd == "lock" then self.db.locked = cmd == "lock"
     elseif cmd == "preview" then self:TogglePreview(); return
     elseif cmd == "version" then self:Print("Loaded version "..self.version);return
+    elseif cmd == "restore" then self:RestoreTimers();return
     elseif cmd == "markstatus" then self:PrintMarkingStatus();return
     elseif cmd == "reset" then self.db.position = nil; self.db.scale = 1; self:Position()
     elseif cmd == "ground" then
@@ -38,7 +39,7 @@ function PTK:Command(message)
         self.db.groundDuration = seconds; self:Print("Ground-effect estimate: " .. seconds .. " seconds.")
     elseif cmd == "help" then
         self:Print("/ptk settings | on | off | auto | pull | resume | notes | share")
-        self:Print("/ptk unlock | lock | preview | reset | ground 8")
+        self:Print("/ptk unlock | lock | preview | restore | reset | ground 8")
         self:Print("Bind Skull, Cross and Clear in WoW's Key Bindings under Paladin TankKit.")
     else self:ToggleSettings() end
     self:SyncSettings(); self:Render()

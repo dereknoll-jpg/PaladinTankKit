@@ -1,6 +1,6 @@
 Version 1.0.4 validation
 
-659 automated behavioral checks pass (634 previous plus 25 marking status/failure
+717 automated behavioral checks pass (659 previous plus 58 timer hiding/restore
 checks), plus Lua 5.1 syntax, TOC/bindings, initialization, class isolation and texture
 checks. Tests simulate both permissive and protected marker-write behavior.
 

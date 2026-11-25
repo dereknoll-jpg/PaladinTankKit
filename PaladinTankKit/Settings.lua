@@ -63,7 +63,9 @@ function P:ToggleSettings()
         self.settingsPages[key]=f; return f
     end
     local general=page("general","Ready when you are.","Quiet reminders. No extra bars.")
-    local timers=page("timers","Your abilities, one timeline.","Choose what appears. Unused abilities stay hidden.")
+    local timers=page("timers","Your abilities, one timeline.","Middle-click an icon to hide it. Re-enable it below.")
+    self.restoreTimersButton=self:QuietButton(timers,"Restore all",98,24,function()self:RestoreTimers()end)
+    self.restoreTimersButton:SetPoint("TOPRIGHT",0,0)
     local marking=page("marking","You choose the pull.","Select a living elite to begin. Mouseover only scouts.")
     local appearance=page("appearance","A little light.","Soft edges and fluid motion, at your preferred scale.")
     for i,tab in ipairs({{"general","Overview"},{"timers","Ability timers"},{"marking","Dungeon marking"},{"appearance","Appearance"}}) do

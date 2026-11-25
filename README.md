@@ -16,6 +16,8 @@ Type `/ptk` for the redesigned settings: Overview, Ability timers, Dungeon marki
 
 ## Timers and motion
 
+Middle-click an ability timer or Forbearance badge to hide it without stopping tracking. Restore individual items in `/ptk` > **Ability timers**, click **Restore all**, or type `/ptk restore`. Preferences are saved per character; enabling a timer does not display unused abilities.
+
 Version **1.0.4** replaces the earlier combat tracking flow with separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
 
 - **Seals:** one selected Seal at a time. Real player buff expiration wins. A confirmed requested cast starts a fallback countdown using that Seal's previously observed duration, or a 30-second reference default if no duration has been observed. Neither Judgement nor hit procs refresh it. A brief handoff prevents the previous Seal or a stale same-Seal snapshot from undoing a recast.

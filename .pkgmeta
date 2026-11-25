@@ -1,0 +1,18 @@
+package-as: PaladinTankKit
+move-folders:
+  PaladinTankKit/PaladinTankKit: PaladinTankKit
+ignore:
+  - Branding
+  - node_modules
+  - backups
+  - dist
+  - previews
+  - release
+  - scripts
+  - tests
+  - README.md
+  - package.json
+  - package-lock.json
+manual-changelog:
+  filename: release/RELEASE_NOTES.md
+  markup-type: markdown
