@@ -51,6 +51,8 @@ const regressions = scenario('PALADIN');
 regressions(fs.readFileSync(path.join(__dirname, 'tracking-regressions.lua'), 'utf8'), 'Live tracking regressions');
 const combatTracking = scenario('PALADIN');
 combatTracking(fs.readFileSync(path.join(__dirname, 'combat-tracking.lua'), 'utf8'), 'Fully hidden combat tracking');
+const markingStatus = scenario('PALADIN');
+markingStatus(fs.readFileSync(path.join(__dirname, 'marking-status.lua'), 'utf8'), 'Marking failure diagnostics');
 for (const [file, w, h] of [['Halo',64,64], ['Trail',128,8], ['Sweep',32,32],
   ['IconFace',64,64], ['IconRim',64,64], ['IconLight',64,64], ['IconShade',64,64], ['IconGlow',64,64], ['Rail',256,4]]) {
   const b = fs.readFileSync(path.join(dir, 'Media', `${file}.tga`));

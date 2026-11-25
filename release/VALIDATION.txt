@@ -1,15 +1,17 @@
-Version 1.0.3 validation
+Version 1.0.4 validation
 
-634 automated behavioral checks pass, plus Lua 5.1 syntax, TOC/bindings,
-initialization, non-Paladin isolation and texture checks.
+659 automated behavioral checks pass (634 previous plus 25 marking status/failure
+checks), plus Lua 5.1 syntax, TOC/bindings, initialization, class isolation and texture
+checks. Tests simulate both permissive and protected marker-write behavior.
 
-51 reminder checks replace the previous 16: assigned tank versus healer/damage/solo,
-legacy Main Tank, Devotion ranks 1-7, equal/higher/lower coverage, actual received
-player aura, group membership/class/source, range loss, expired/hidden rank data,
-per-spell secrecy, role events, warning blink, Reduced Motion, one-shot dungeon
-sound, debounce, uncertainty without rearming, independent switches, suppression,
-raid visual-only behavior and a successful Fury cast's aura-delivery grace.
+The commenter report does not establish whether they were leader/assistant.
+No live dungeon reproduction of that user's marking failure has been performed.
+AUTO previously meant an armed queue, so the old badge did not prove a successful
+write. The new badge requires a confirmed, currently readable automatic marker.
 
-Live-client visual/audio and group coverage verification of 1.0.3 remains pending.
-Existing screenshots/GIF document 1.0.0, not the new alert appearance.
-Public CurseForge publishing has not been performed by the assistant.
+Runtime marker refusal is detected and reported; it is not bypassed. A blocked
+SetRaidTarget call is not guaranteed to raise a Lua error, so its native blocked/
+forbidden event is checked too. Tests cannot prove automatic marking is supported
+by an actual restricted Forever client. Native target-marker controls are the
+fallback. /ptk markstatus is intended to identify the report's actual blocker.
+Public CurseForge publishing: not performed by the assistant.

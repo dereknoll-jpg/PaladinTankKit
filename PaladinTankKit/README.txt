@@ -1,7 +1,15 @@
-Paladin TankKit 1.0.3 - WoW Forever (Interface 16001)
+Paladin TankKit 1.0.4 - WoW Forever (Interface 16001)
 Mark. Track. Protect.
 
 /ptk opens settings. /ptk version prints the currently loaded build.
+/ptk markstatus prints the actual marking state, blocker and permission details.
+
+Marking is client-dependent. Forever can protect addon SetRaidTarget calls even
+outside combat; leadership cannot override this. When blocked, use WoW's native
+target-marker bindings or target menu. No automatic-marking bypass is claimed.
+LEAD needs leader/assist (tank role is separate); ARM is armed; SET awaits client
+confirmation; AUTO is a confirmed visible automatic marker; HOLD lacks readable
+data; BLOCK is a native refusal; PAUSE needs attention; MAN is manual-only.
 
 MARKING: Select a living elite in a dungeon party to begin. Mouseover scouts only.
 Before combat only the selected elite is seeded; other elites need party engagement.

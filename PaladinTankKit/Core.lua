@@ -1,6 +1,6 @@
 local _, PTK = ...
 
-PTK.version = "1.0.3"
+PTK.version = "1.0.4"
 PTK.timerKeys = {"seal", "ground", "justice", "holy", "bulwark"}
 PTK.defaults = { enabled = true, locked = true, scale = 1, horizon = 30,
     warnings = true, showForbearance = true, idleFade = true, groundDuration = 8,
@@ -130,14 +130,18 @@ function PTK:Mark(icon)
         end
     end
     if not unit then self:Print("Mouse over or target a living elite enemy first."); return end
-    local current, readable = self:Call(GetRaidTargetIndex, unit)
+    if self.markingBlocked then self:Print(self.markingBlocked);return end
+    local current, readable = self:ReadRaidMark(unit)
     if not readable then self:Print("That enemy's mark is currently unavailable."); return end
     if current == icon then
         if icon ~= 0 then self:NoteManualMark(unit, icon) end
         return
     end
     if icon == 0 and current == nil then return end
+    self.markAttempt=true
     local ok = pcall(SetRaidTarget, unit, icon)
+    self.markAttempt=nil
+    if self.markingBlocked then return end
     if not ok then self:Print("WoW could not apply that mark.")
     else
         self:NoteManualMark(unit, icon)

@@ -1,10 +1,12 @@
-# Paladin TankKit 1.0.3
+# Paladin TankKit 1.0.4
 
 **Mark. Track. Protect.**
 
 Paladin TankKit is a clean, minimalist tanking companion built specifically for **Paladins in World of Warcraft: Forever**. Keep your kill order, important timers, and quick boss guidance close at hand with a compact HUD, subtle holy light effects, and smooth animations.
 
-## Smart dungeon marking
+## Smart Dungeon Marking
+
+**Automatic marking depends on the client allowing addon marker writes.** If WoW blocks the action or hides required target data, TankKit shows the reason. A protected marking refusal cannot be fixed by changing group leader; use WoW's own target-marker keybindings or target menu in that case. Automatic marking and promotion are not guaranteed on a restricted client.
 
 **You choose the pull.** Automatic marking begins when you select a living elite in a dungeon party—even before combat. Mouseover can scout enemies, but it never starts marking by itself.
 

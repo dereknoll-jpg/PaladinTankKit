@@ -22,12 +22,15 @@ function PTK:Command(message)
         self.db.enabled = cmd == "on"; self:ResetMarking(); self:RecoverCooldowns(); self:UpdatePermissionAlert()
     elseif cmd == "auto" then self.db.autoMark = not self.db.autoMark; self:ResetMarking()
     elseif cmd == "pull" then self:SmartMarkPull(); return
-    elseif cmd == "resume" then self:ResetMarking(); self:Print("Auto marking reset; existing marks remain respected.")
+    elseif cmd == "resume" then
+        if self.markingBlocked then self:Print(self.markingBlocked);return end
+        self:ResetMarking(); self:Print("Auto marking reset; existing marks remain respected.")
     elseif cmd == "notes" then self:ShowBossNoteInChat(); return
     elseif cmd == "share" then self:ShareBossNote(); return
     elseif cmd == "unlock" or cmd == "lock" then self.db.locked = cmd == "lock"
     elseif cmd == "preview" then self:TogglePreview(); return
     elseif cmd == "version" then self:Print("Loaded version "..self.version);return
+    elseif cmd == "markstatus" then self:PrintMarkingStatus();return
     elseif cmd == "reset" then self.db.position = nil; self.db.scale = 1; self:Position()
     elseif cmd == "ground" then
         local seconds = tonumber(argument)
@@ -53,6 +56,7 @@ events:SetScript("OnEvent", function(_, event, ...)
         if not PTK.isPaladin then return end
         PTK:ResetMarking(); PTK:DiscoverSpells(); PTK:InstallCastObservers(); PTK:RecoverCooldowns(); PTK:RefreshAuras(); PTK:CreateUI()
         for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_START",
+            "ADDON_ACTION_BLOCKED", "ADDON_ACTION_FORBIDDEN",
             "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
             "SPELLS_CHANGED", "SPELL_UPDATE_COOLDOWN", "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_FORMS", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED",
             "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_MOUNT_DISPLAY_CHANGED",
@@ -74,6 +78,9 @@ events:SetScript("OnEvent", function(_, event, ...)
         return
     end
     if not PTK.isPaladin or not PTK.db then return end
+    if event=="ADDON_ACTION_BLOCKED" or event=="ADDON_ACTION_FORBIDDEN" then
+        PTK:MarkActionBlocked(...);PTK:Render();return
+    end
     if event == "UNIT_SPELLCAST_SENT" then
         local unit, _, guid, spellID = ...
         PTK:RememberCastRequest(unit,guid,spellID)

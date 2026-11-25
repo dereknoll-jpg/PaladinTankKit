@@ -143,6 +143,7 @@ function P:SyncSettings()
     self.horizonButton.label:SetText(self.db.horizon.." second timeline")
     self.previewButton.label:SetText(self.preview and "End preview" or "Preview HUD")
     self.moveButton.label:SetText(self.db.locked and "Move HUD" or "Lock HUD")
-    self.settingsStatus:SetText("v"..self.version.."  /  "..(self.db.autoMark and "Target an elite to start marking" or "Manual marking"))
+    local status=self:MarkingStatus()
+    self.settingsStatus:SetText("v"..self.version.."  /  Marking: "..status.."  /  /ptk markstatus")
     self:TickSettings(.016)
 end

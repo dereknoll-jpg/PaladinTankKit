@@ -13,7 +13,7 @@ local function tooltip(frame, title, body)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText(type(title) == "function" and title() or title, gold[1], gold[2], gold[3])
-        GameTooltip:AddLine(body, 0.85, 0.85, 0.85, true)
+        GameTooltip:AddLine(type(body)=="function" and body() or body, 0.85, 0.85, 0.85, true)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -87,7 +87,10 @@ function PTK:CreateUI()
         elseif IsShiftKeyDown() then self:Mark(7)
         else self:Mark(8) end
     end)
-    tooltip(skull, "Paladin TankKit", "Elites only. Click: pin Skull\nShift-click: pin Cross\nCtrl-click: clear and pause auto marks\nRight-click: settings\n\nAuto: select an elite to start the pull.\nMouseover scouts; it never starts auto marks.\nDungeon leader/assistant required.\nManual clicks use mouseover first.")
+    tooltip(skull,"Paladin TankKit",function()
+        local status,reason=self:MarkingStatus()
+        return status..": "..reason.."\n\nElites only. Click: pin Skull\nShift-click: pin Cross\nCtrl-click: clear/pause\nRight-click: settings\nMouseover scouts; only a selected elite starts auto marks.\nTank role is separate from leader/assistant permission.\n/ptk markstatus prints the current blocker."
+    end)
     self.markStatus = text(f, 8, gold[1], gold[2], gold[3])
     self.markStatus:SetPoint("TOPLEFT", 0, -32)
     self:CreateMarkEffects()
@@ -150,7 +153,8 @@ function PTK:Render()
     local bulwark, bulwarkState = self:UsedTimerView("bulwark",now)
     local groundCooldown, groundState = self:UsedTimerView("ground",now)
     local warning = self:Warnings()
-    local markingIssue = self:MarkPermissionIssue() or (self.marking and self.marking.paused)
+    local markingIssue = self:MarkPermissionIssue() or self.markingBlocked or (self.marking and self.marking.paused)
+    if self.markingBlocked then markingIssue="WoW blocked addon marking; use native target-marker bindings." end
     if markingIssue then warning = warning ~= "" and (warning .. " / " .. markingIssue) or markingIssue end
     if ground and ground.expires <= now then ground = nil; self.ground = nil end
     if self.preview then
@@ -211,10 +215,8 @@ function PTK:Render()
         self.forbearanceTile.count:SetText(fb.expires and fb.expires > 0
             and self:FormatTime(fb.expires - now, fb.estimated) or "?")
     end
-    local _, kind = self:Instance()
-    local manualOnly = IsInRaid() or kind ~= "party" or (self.marking and self.marking.worldBoss)
-    self.markStatus:SetText(manualOnly and "MAN" or (kind == "party" and self.db.autoMark
-        and ((self:MarkPermissionIssue() or (self.marking and self.marking.paused)) and "PAUSE" or (self.marking.armed and "AUTO" or "WAIT")) or ""))
+    local markingStatus=self:MarkingStatus()
+    self.markStatus:SetText(markingStatus)
     self:RenderNotes()
     self:TickMarkEffects(now)
 end

@@ -1,3 +1,14 @@
+# 1.0.4
+
+- Corrected the AUTO badge: it now requires a confirmed, currently readable automatic marker instead of merely an armed queue.
+- Added LEAD, ARM, SET, HOLD and BLOCK states with live tooltip reasons and /ptk markstatus diagnostics.
+- Clarified that assigned tank role does not satisfy TankKit's leader/assistant ownership policy.
+- Normalized zero and nil unmarked results and fixed pre-pull retargeting stranding an unmarked queue.
+- Detects ADDON_ACTION_BLOCKED / ADDON_ACTION_FORBIDDEN for marker writes, including a native refusal that does not throw a Lua error. Stops retries and never records phantom successful markers.
+- A client-protected marking refusal is not repairable by leadership or /ptk resume. Direct users to Blizzard's own target-marker controls in that state.
+- Removed Bindings.xml from the normal TOC XML list; it remains available to WoW's dedicated bindings loader.
+- Added 25 regression checks for reporting, permissions, zero markers, pre-pull retargeting and refused marking actions.
+
 # 1.0.3
 
 - Missing Righteous Fury now gets a larger blinking orange warning and soft glow while grouped and assigned the tank role (or legacy main-tank assignment).

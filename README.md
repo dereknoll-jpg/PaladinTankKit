@@ -1,10 +1,10 @@
 # Paladin TankKit — WoW Forever
 
-**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.3**.
+**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.4**.
 
 ## Install
 
-Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.3.zip`. Generated archives and local installation backups are excluded from this repository.
+Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.4.zip`. Generated archives and local installation backups are excluded from this repository.
 
 ![Paladin TankKit settings](release/media/gallery/01-overview.png)
 
@@ -16,7 +16,7 @@ Type `/ptk` for the redesigned settings: Overview, Ability timers, Dungeon marki
 
 ## Timers and motion
 
-Version **1.0.3** replaces the earlier combat tracking flow with separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
+Version **1.0.4** replaces the earlier combat tracking flow with separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
 
 - **Seals:** one selected Seal at a time. Real player buff expiration wins. A confirmed requested cast starts a fallback countdown using that Seal's previously observed duration, or a 30-second reference default if no duration has been observed. Neither Judgement nor hit procs refresh it. A brief handoff prevents the previous Seal or a stale same-Seal snapshot from undoing a recast.
 - **Consecration:** uses a readable player ground-effect slot or buff timer when possible. Otherwise it counts the successful cast's configured ground lifetime (8 seconds by default). A readable ability cooldown start can recover a missed cast. Ground lifetime and remaining cooldown are distinct.
@@ -35,6 +35,10 @@ Grouped Paladins assigned **Tank** (or legacy Main Tank) get larger blinking ora
 
 Inside a party dungeon, a confirmed missing tank buff plays one sound after a short debounce. Persistent absence does not repeat the sound; confirmed restoration rearms it. A readable gap does not rearm an already sounded episode. The Overview page has independent reminder switches and a Dungeon alert sound switch. Reduced Motion keeps a strong static warning. Buff alerts are suppressed while solo, unassigned, in another role, dead, mounted or previewing. Raid tank warnings remain visual. Equipped-shield durability reminders still work separately, including solo. Missing Seals and low mana do not produce alerts.
 ## Marking
+
+**Client-dependent:** TankKit can only apply automatic markers when WoW permits addon marker writes and exposes the needed target information. Forever reports show that `SetRaidTarget` can be protected, including outside combat. Leader status cannot override a protected-function restriction. If the client blocks the action, TankKit stops retrying and directs you to WoW's native target-marker keybindings or target menu. Automatic marking and automatic death promotion are not guaranteed on a restricted client.
+
+The marker badge now reports verified state: `LEAD` requests leader/assistant; `WAIT` needs an eligible selection; `ARM` has selected an elite; `SET` awaits marker confirmation; `AUTO` has a confirmed visible automatic marker; `HOLD` lacks readable/visible data; `PAUSE` needs attention; `BLOCK` is a client refusal; `MAN` is manual-only. The tooltip explains the current state. `/ptk markstatus` prints the build, reason, auto setting, grouping, leadership, tank role and target eligibility without printing a unit GUID. Being assigned Tank is separate from TankKit's leader/assistant policy.
 
 Automatic marking starts only after you select a readable, living elite in a dungeon party. Mouseover can scout and remember observed casters, but cannot start a marking queue. Nameplates, nearby combat and party targets alone cannot start one either.
 

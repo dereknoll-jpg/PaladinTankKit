@@ -16,8 +16,68 @@ end
 function PTK:MarkPermissionIssue()
     local _, kind = self:Instance()
     if IsInGroup() and (kind == "party" or IsInRaid()) and not self:HasMarkingLead() then
-        return "Marking paused: request party leader or raid assist."
+        return "Marking paused: request party leader or raid assist. Tank role alone does not grant marking leadership."
     end
+end
+
+function PTK:ReadRaidMark(unit)
+    local mark,ok=self:Call(GetRaidTargetIndex,unit)
+    if not ok then return nil,false end
+    if mark==nil or mark==0 then return nil,true end
+    if not self:Number(mark) or mark%1~=0 or mark<1 or mark>8 then return nil,false end
+    return mark,true
+end
+
+function PTK:MarkingStatus()
+    local instanceID,kind=self:Instance()
+    local m=self.marking
+    if not self.db.enabled then return "OFF","TankKit is disabled." end
+    if not kind then return "HOLD","WoW is hiding instance data; dungeon eligibility cannot be verified." end
+    if not IsInGroup() then return "MAN","Automatic marking requires a dungeon party." end
+    if IsInRaid() or kind~="party" or (m and m.worldBoss) then return "MAN","Automatic marks are dungeon-party only; raids, world bosses and outdoors stay manual." end
+    if self.dungeons[instanceID] and self.dungeons[instanceID].manualOnly then return "MAN","This dungeon catalog requires manual marking." end
+    if not self.db.autoMark then return "MAN","Automatic marking is switched off." end
+    local permission=self:MarkPermissionIssue()
+    if permission then return "LEAD",permission end
+    if self.markingBlocked then return "BLOCK",self.markingBlocked end
+    if m and m.paused then return "PAUSE",m.paused end
+    if self.preview then return "DEMO","Preview never marks enemies." end
+    if UnitIsDeadOrGhost("player") or IsMounted() then return "WAIT","Marking waits while dead or mounted." end
+    if m then
+        local pending=false
+        for guid,owned in pairs(m.owned) do
+            local record=m.candidates[guid]
+            if owned.confirmed and record and record.unit and not record.dead
+                and self:UnitIdentity(record.unit)==guid and self:ReadRaidMark(record.unit)==owned.icon then
+                return "AUTO","Automatic mark confirmed on an eligible dungeon enemy."
+            end
+            if not owned.confirmed then pending=true end
+        end
+        if pending then return "SET","Mark requested; waiting for the client to confirm it." end
+        if next(m.owned) then return "HOLD","Previous marks are no longer readable or visible; absence is not proof of death." end
+    end
+    if not self:IsAutoMarkEnemy("target") then return "WAIT","Select a living elite enemy to begin. Non-elites are never marked." end
+    if not self:UnitIdentity("target") then return "HOLD","WoW is hiding this target's identity; no automatic mark can be verified." end
+    local _,readable=self:ReadRaidMark("target")
+    if not readable then return "HOLD","WoW is hiding this target's marker; automatic marking cannot safely overwrite it." end
+    return m and m.armed and "ARM" or "WAIT",m and m.armed and "Elite selected; preparing the first mark." or "Select a living elite to start marking."
+end
+
+function PTK:PrintMarkingStatus()
+    local status,reason=self:MarkingStatus()
+    local _,kind=self:Instance()
+    self:Print("v"..self.version.." marking "..status..": "..reason)
+    self:Print("Auto="..tostring(self.db.autoMark)..", group="..tostring(IsInGroup())..
+        ", leader/assist="..tostring(self:HasMarkingLead())..", tank="..tostring(self:IsAssignedTank())..
+        ", instance="..tostring(kind)..", target elite="..tostring(self:IsAutoMarkEnemy("target")))
+end
+
+function PTK:MarkActionBlocked(addon,action)
+    if not self:Readable(addon) or type(addon)~="string" or addon~="PaladinTankKit" then return end
+    if not self:Readable(action) or type(action)~="string" then return end
+    if not action:find("SetRaidTarget",1,true) and not self.markAttempt then return end
+    self.markingBlocked="WoW blocked addon marking. Use Blizzard's target-marker keybindings or target menu; leader status cannot override this client restriction."
+    self:PauseMarking(self.markingBlocked)
 end
 
 function PTK:UpdatePermissionAlert()
@@ -69,6 +129,7 @@ function PTK:AutoMarkAllowed()
     local catalog = self.dungeons[instanceID]
     return self.isPaladin and self.db and self.db.enabled and self.db.autoMark and not self.preview
         and kind == "party" and IsInGroup() and not IsInRaid() and self:HasMarkingLead()
+        and not self.markingBlocked
         and not (self.marking and self.marking.worldBoss)
         and not (catalog and catalog.manualOnly) and not UnitIsDeadOrGhost("player") and not IsMounted()
 end
@@ -131,7 +192,7 @@ end
 function PTK:PauseMarking(reason)
     if self.marking.paused then return end
     self.marking.paused = reason
-    self:Print(reason .. " /ptk resume to retry.")
+    self:Print(reason .. (self.markingBlocked and "" or " /ptk resume to retry."))
 end
 
 function PTK:SyncMarkOwnership()
@@ -142,16 +203,17 @@ function PTK:SyncMarkOwnership()
             if m.slots[owned.icon] == guid then m.slots[owned.icon] = nil end
             m.owned[guid] = nil
         elseif r and r.unit and now >= owned.verifyAt then
-            local actual, ok = self:Call(GetRaidTargetIndex, r.unit)
+            local actual, ok = self:ReadRaidMark(r.unit)
             if not ok then self:PauseMarking("Marking paused: WoW is hiding raid marks."); return false end
             if actual ~= owned.icon then
                 self:PauseMarking("Marking paused: a mark changed or WoW refused it."); return false
             end
+            owned.confirmed=true
         end
     end
     for _, r in pairs(m.candidates) do
         if r.unit and not r.dead then
-            local mark, ok = self:Call(GetRaidTargetIndex, r.unit)
+            local mark, ok = self:ReadRaidMark(r.unit)
             if not ok then self:PauseMarking("Marking paused: WoW is hiding raid marks."); return false end
             r.mark = mark
             if (mark == 7 or mark == 8) and not m.owned[r.guid] then
@@ -204,10 +266,13 @@ function PTK:AssignAutoMark(r, icon)
     if not r or not r.unit or (r.entry and r.entry.neverAutoMark)
         or not self:IsAutoMarkEnemy(r.unit) or self:UnitIdentity(r.unit) ~= r.guid then return false end
     if r.guid ~= m.armed and not self:GroupEngaged(r.unit) then return false end
-    local actual, readable = self:Call(GetRaidTargetIndex, r.unit)
+    local actual, readable = self:ReadRaidMark(r.unit)
     if not readable or (actual and actual ~= 7 and actual ~= 8) then return false end
     if not self:HasMarkingLead() then return false end
+    self.markAttempt=true
     local ok = pcall(SetRaidTarget, r.unit, icon)
+    self.markAttempt=nil
+    if self.markingBlocked then return false end
     if not ok then self:PauseMarking("Marking paused: WoW blocked the marking action."); return false end
     if self.QueueMarkFeedback then self:QueueMarkFeedback(r.unit, icon, actual == 7 and icon == 8) end
     local previous = m.slots[icon]
@@ -225,6 +290,15 @@ function PTK:AutoMarkTick(seed)
     if not self:AutoMarkAllowed() then return end
     local m = self.marking
     if m.paused then return end
+    -- Retargeting during the initial delay must not strand a never-marked pull.
+    if m.armed and not m.engaged and not next(m.owned) and not next(m.slots)
+        and self:IsAutoMarkEnemy("target") then
+        local current=self:UnitIdentity("target")
+        if current and current~=m.armed then
+            local scouting,scoutCount=m.scouted,m.scoutCount
+            self:ResetMarking();m=self.marking;m.scouted,m.scoutCount=scouting,scoutCount
+        end
+    end
     if self:Call(UnitClassification,"target") == "worldboss" then m.worldBoss=true; return end
     -- Mouseover can remember a caster, but can never arm or seed a pull.
     local scoutGUID = self:UnitIdentity("mouseover")
@@ -249,7 +323,7 @@ function PTK:AutoMarkTick(seed)
         local record = self:ObserveMarkUnit(unit, unit == "target" and self:UnitIdentity(unit) == m.armed)
         if record and not record.dead then hasCandidate = true end
         if self:Call(UnitExists, unit) == true then
-            local mark = self:Call(GetRaidTargetIndex, unit)
+            local mark = self:ReadRaidMark(unit)
             if (mark == 7 or mark == 8) and not record then
                 foreignMark = true
             end
