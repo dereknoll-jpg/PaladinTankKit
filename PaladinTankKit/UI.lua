@@ -14,7 +14,7 @@ local function tooltip(frame, title, body)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText(type(title) == "function" and title() or title, gold[1], gold[2], gold[3])
         local detail=type(body)=="function" and body() or body
-        if frame.timerOption then detail=detail.."\n\nMiddle-click to hide. Restore in /ptk > Ability timers, or /ptk restore." end
+        if frame.timerOption then detail=detail.."\n\nMiddle-click to hide. Restore in /ptk > Ability timers or Protection; /ptk restore enables all." end
         GameTooltip:AddLine(detail, 0.85, 0.85, 0.85, true)
         GameTooltip:Show()
     end)
@@ -54,15 +54,16 @@ function PTK:AttachTimerHiding(frame,option)
         frame:Hide()
         if frame.pin then frame.pin:Hide() end
         self:SyncSettings();self:Render()
-        self:Print("Timer hidden. Restore in /ptk > Ability timers, or /ptk restore.")
+        self:Print("Item hidden. Restore in /ptk > Ability timers or Protection; /ptk restore enables all.")
     end)
 end
 
 function PTK:RestoreTimers()
     for _,key in ipairs(self.timerKeys) do self.db["track"..key:sub(1,1):upper()..key:sub(2)]=true end
     self.db.showForbearance=true
+    for _,option in ipairs(self.protectionOptions) do self.db[option]=true end
     self:SyncSettings();self:Render()
-    self:Print("All ability timers restored. Unused abilities remain hidden until active.")
+    self:Print("All timers and protection reminders restored. Inactive effects remain hidden.")
 end
 
 function PTK:Position()
@@ -126,7 +127,9 @@ function PTK:CreateUI()
         icon:SetFrameLevel(f:GetFrameLevel() + 2)
         local defensiveTip = key == "holy" and "Holy Shield's actual buff duration.\nAppears after use or when the active buff is readable.\nClears when Blizzard reports the buff ended.\n~ means a cast estimate or remembered expiry. Timers without a deadline stay hidden."
             or (key == "bulwark" and "Templar's Bulwark cooldown: only while learned and after your cast.\nUses Blizzard's cooldown, including readable talent reductions.\nReady briefly lights up, then clears.\n~ means a cast estimate or remembered expiry. Timers without a deadline stay hidden.")
-        tooltip(icon, key == "seal" and function() return self.activeSeal and self.activeSeal.name or "Last cast Seal" end or self.spells[key].name, defensiveTip or (key == "ground"
+        tooltip(icon, key == "seal" and function() return self.activeSeal and self.activeSeal.name or "Last cast Seal" end or self.spells[key].name, key=="bulwark" and function()
+            return defensiveTip..(self.db.forbearanceAware and self:ForbearanceActive() and ("\n\n"..self:ForbearanceDetails()) or "")
+        end or defensiveTip or (key == "ground"
             and "Moves right to left as the ground effect expires.\n~ marks an estimated duration based on your successful cast.\nReady refers to cooldown only; it does not promise enough mana.\nReadable player ground-effect timing takes priority."
             or (key == "justice" and "Hammer of Justice cooldown, shown only after your cast.\n~ marks a cast estimate or remembered timing while hidden.\nReadiness briefly lights up, then the icon clears."
             or "Tracks your active Seal using Blizzard's buff expiration.\nJudgement and hits do not restart or clear this timer.\n~ marks a cast estimate or remembered expiry. Real player buff timers take priority.")))
@@ -150,12 +153,16 @@ function PTK:CreateUI()
     tooltip(self.forbearanceTile, self.spells.forbearance.name,
         "Forbearance is active. Certain protective abilities are unavailable.\n~ marks a remembered estimate.")
     self:AttachTimerHiding(self.forbearanceTile,"showForbearance")
+    self:CreateProtectionUI(tile,tooltip,text)
     self:Position()
     self:CreateNotesUI()
 end
 
 function PTK:RenderLane(key, aura, now, state)
-    if state=="ready" then self:PresentTimer(key,"ready",nil,now,"Ready");return end
+    if state=="ready" then
+        local locked=key=="bulwark" and self.db.forbearanceAware and self:ForbearanceActive(now)
+        self:PresentTimer(key,"ready",nil,now,locked and "Locked" or "Ready");return
+    end
     if state=="hidden" or not aura or not aura.active or not aura.expires or aura.expires<=now then
         self:PresentTimer(key,"hidden",nil,now,"");return
     end
@@ -203,6 +210,7 @@ function PTK:Render()
     if suppressed and not self.preview then seal, ground, fb, warning, justice = nil, nil, nil, "", nil end
     local active = self.preview or not self.db.locked or InCombatLockdown() or self:CurrentBossNote()
         or (seal and seal.active) or ground or justice or (holy and holy.active) or bulwark or warning ~= "" or (fb and fb.active)
+        or next(self.protection or {})~=nil or self.personalCleanse~=nil
     self:HUDOpacity(active and 1 or (self.db.idleFade and 0.25 or 1), now)
     self.anchor:EnableMouse(not self.db.locked)
     self.anchorLabel:SetShown(not self.db.locked)
@@ -234,12 +242,7 @@ function PTK:Render()
     end
     self.warning:SetText(warning)
     self:RenderTankBuffAlerts(now)
-    local showFB = self.db.showForbearance and fb and fb.active and fb.expires and fb.expires>now
-    self.forbearanceTile:SetShown(showFB and true or false)
-    if showFB then
-        self.forbearanceTile.count:SetText(fb.expires and fb.expires > 0
-            and self:FormatTime(fb.expires - now, fb.estimated) or "?")
-    end
+    self:RenderProtection(now,fb,suppressed and not self.preview)
     local markingStatus=self:MarkingStatus()
     self.markStatus:SetText(markingStatus)
     self:RenderNotes()

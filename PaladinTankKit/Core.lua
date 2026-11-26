@@ -1,12 +1,14 @@
 local _, PTK = ...
 
-PTK.version = "1.0.4"
+PTK.version = "1.0.5"
 PTK.timerKeys = {"seal", "ground", "justice", "holy", "bulwark"}
 PTK.defaults = { enabled = true, locked = true, scale = 1, horizon = 30,
     warnings = true, showForbearance = true, idleFade = true, groundDuration = 8,
     autoMark = true, bossNotes = true, effects = true, reducedMotion = false,
     warnFury=true, warnAura=true, warnShield=true, warningSounds=true,
-    trackSeal=true, trackGround=true, trackJustice=true, trackHoly=true, trackBulwark=true }
+    trackSeal=true, trackGround=true, trackJustice=true, trackHoly=true, trackBulwark=true,
+    showIronCreed=true, showSpellBlock=true, showBulwarkActive=true, forbearanceAware=true,
+    warnCleanse=true, encounterCues=true }
 PTK.definitions = {
     seal = { label = "Seal", ids = {
         20154, 21084, 20287, 20288, 20289, 20290, 20291, 20292, 20293,
@@ -98,6 +100,7 @@ function PTK:DiscoverSpells()
     self.spells.seal.name = "Seal"
     if self.activeSeal then self:SelectSeal(self.activeSeal.id, self.activeSeal.name) end
     self:RefreshTimerKnowledge()
+    self:DiscoverProtection()
 end
 
 function PTK:Cooldown(key)

@@ -1,9 +1,10 @@
-# Paladin TankKit 1.0.4
+# Paladin TankKit 1.0.5
 
-- **Middle-click to hide timers:** middle-click an ability icon or the Forbearance badge to hide it. Your choice is saved per character, and tracking continues in the background.
-- **Easy restoration:** open `/ptk` > **Ability timers** to re-enable individual items. Click **Restore all** or type `/ptk restore` to enable all timers again. Unused abilities stay hidden until active.
-- **Clearer marking status:** the Skull button now explains whether marking needs leader/assistant permission, is armed, is waiting for confirmation, or has been blocked by the game. **AUTO** only appears after an automatic mark is confirmed and readable.
-- Fixed pre-pull target switching leaving an unmarked queue stuck, and improved compatibility with the game's unmarked-target results.
-- Improved handling of blocked marking attempts to stop repeated retries and avoid reporting marks that were never applied. Added `/ptk markstatus` for troubleshooting.
+- **Protection at a glance:** fixed icons above the timeline show Iron Creed, Shieldsworn spell block, Bulwark's active shield and Forbearance. The sliding rail keeps its five trackers.
+- **Real buff tracking:** new indicators follow observed player buffs and readable early removal. Bulwark's remaining absorb appears on hover when available.
+- **Forbearance awareness:** flags Bulwark's cooldown while locked out and lists affected learned self-protection abilities.
+- **Personal cleanse reminder:** a quiet optional indicator for removable personal debuffs, matched to your learned Cleanse or Purify. No extra sound or automatic casting.
+- **Your choice:** individual switches on the new Protection page, matching glow and Reduced Motion support. Middle-click any new icon to hide it. Restore in `/ptk` > **Protection**, with **Restore all**, or with `/ptk restore`.
+- **More useful boss notes:** twelve refreshed plans across Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns use Wowhead Forever 1.60.1 sources. Optional private cues highlight observed casts, engaged adds and selected health thresholds in the existing ribbon. No automatic chat messages.
 
-Automatic marking remains limited to eligible elites in dungeon parties and depends on the game allowing addon marking. Being assigned Tank does not grant leader/assistant permission. If the client blocks addon marking, use WoW's built-in target-marker controls. Raids, world bosses, and outdoor encounters remain manual.
+New encounter cues require reviewed Forever 1.60.1 entries and readable game data. Older reference notes keep their confidence labels and cannot trigger these cues. All additions can be disabled individually.

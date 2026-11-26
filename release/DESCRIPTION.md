@@ -1,4 +1,4 @@
-# Paladin TankKit 1.0.4
+# Paladin TankKit 1.0.5
 
 **Mark. Track. Protect.**
 
@@ -22,7 +22,7 @@ Other enemies join the queue as your party engages them. After the opening prior
 
 Abilities move from right to left as their timers run down. Unused abilities stay hidden, and each tracker can be switched on or off.
 
-**Middle-click any ability timer or the Forbearance badge to hide it.** Restore individual items in `/ptk` > **Ability timers**, click **Restore all**, or type `/ptk restore`. Choices are saved per character, and tracking continues while hidden.
+**Middle-click any ability timer, protection badge or cleanse reminder to hide it.** Restore individual items in `/ptk` > **Ability timers** or **Protection**, click **Restore all**, or type `/ptk restore`. Choices are saved per character.
 
 - **Seals:** tracks your active Seal using Blizzard's buff expiration, with a successful-cast estimate when combat hides it. Judgement and melee hits do not restart its timer.
 - **Consecration:** uses a readable player buff or ground-effect timer when available, with a cast-based estimate and cooldown recovery as fallbacks.
@@ -30,7 +30,9 @@ Abilities move from right to left as their timers run down. Unused abilities sta
 - **Holy Shield:** actual buff duration, with a bounded cast estimate when timing is hidden.
 - **Templar's Bulwark:** cooldown when talented and used.
 
-A small badge shows active Forbearance. Readable cooldowns already in progress can restore tracking after reloading, zoning, or death. Confirmed cooldown completion briefly lights up before clearing.
+A compact, fixed row above the timeline shows **Iron Creed**, **Shieldsworn spell block**, **Bulwark's active shield**, and **Forbearance** only while active. The existing sliding rail keeps its five trackers. Bulwark's readable remaining absorb appears on hover. Optional Forbearance awareness flags its cooldown and explains affected learned self-protection abilities. Individual switches, middle-click hiding and Reduced Motion keep the display under your control.
+
+Readable cooldowns already in progress can restore tracking after reloading, zoning, or death. Confirmed cooldown completion briefly lights up before clearing.
 
 ## Compact boss notes
 
@@ -38,7 +40,11 @@ Includes **193 selected boss notes across 28 dungeon instance catalogs**, plus *
 
 Coverage is selected rather than a complete dungeon journal. Reference-based or limited-confidence guidance is labeled, and unverified entries do not receive special automatic priority scores. Some encounter identification currently relies on English names.
 
+**New private encounter cues:** twelve refreshed plans across Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns use Wowhead Forever 1.60.1 sources. Observed casts, engaged adds and selected health crossings can bring a relevant tip into the existing ribbon. These cues never auto-post to chat, and have a separate switch. Older reference plans cannot trigger them.
+
 ## Quiet, useful reminders
+
+An optional **personal cleanse reminder** appears above the rail for a readable debuff the client identifies as removable with your learned Cleanse or Purify. It stays silent, respects the Reminders master switch, and can be disabled or middle-clicked away.
 
 While grouped and assigned the tank role, missing **Righteous Fury** or **Devotion Aura** produces a larger blinking warning. Devotion is considered covered when another group Paladin's aura is actually reaching you at an equal or higher spell rank than your best learned rank. In party dungeons, a confirmed missing buff plays one alert sound per episode; audio can be muted separately. Reduced Motion keeps the warning static. Unknown aura rank or source does not trigger a guessed loss warning. Optional equipped-shield warnings still alert at **20% durability or below**, with a clear warning when broken. Missing Seals and low mana do not trigger alerts.
 

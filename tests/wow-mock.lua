@@ -29,6 +29,9 @@ local definitions = {
     [853] = "Hammer of Justice", [10308] = "Hammer of Justice",
     [1239570] = "Holy Shield", [20925] = "Holy Shield", [20927] = "Holy Shield", [20928] = "Holy Shield",
     [1311015] = "Templar's Bulwark",
+    [1311033] = "Iron Creed", [1328551] = "Shieldsworn", [678] = "Holy Strike",
+    [4987] = "Cleanse", [1152] = "Purify", [642] = "Divine Shield",
+    [498] = "Divine Protection", [1022] = "Blessing of Protection",
 }
 KNOWN[1311656], KNOWN[25780], KNOWN[26573] = true, true, true
 KNOWN[465]=true
@@ -64,6 +67,7 @@ end}
 C_Secrets = {ShouldAurasBeSecret = function() return RESTRICTED end}
 C_UnitAuras = {GetAuraDataByIndex = function(_, index, filter)
     if AURA_ERROR then error("restricted") end
+    if filter=="HARMFUL|RAID" then return (REMOVABLE or {})[index] end
     return (filter == "HELPFUL" and HELPFUL or HARMFUL)[index]
 end}
 local methods = {}
@@ -110,6 +114,7 @@ UISpecialFrames, SlashCmdList = {}, {}
 DEFAULT_CHAT_FRAME = {AddMessage = function(_, msg) MESSAGES[#MESSAGES + 1] = msg end}
 function tinsert(t, v) table.insert(t, v) end
 function GetTime() return NOW end
+function GetBuildInfo() return BUILD_VERSION or "1.60.1" end
 function InCombatLockdown() return COMBAT end
 function UnitClass(unit)
     if unit and unit~="player" then local class=UNITS[unit] and UNITS[unit].class;return class,class end
@@ -124,6 +129,8 @@ function UnitGUID(unit) return UNITS[unit] and UNITS[unit].guid end
 function UnitName(unit) return UNITS[unit] and UNITS[unit].name end
 function UnitClassification(unit) return UNITS[unit] and (UNITS[unit].classification or "elite") end
 function UnitAffectingCombat(unit) return UNITS[unit] and UNITS[unit].combat or false end
+function UnitHealth(unit) return UNITS[unit] and UNITS[unit].health end
+function UnitHealthMax(unit) return UNITS[unit] and UNITS[unit].healthMax end
 function UnitThreatSituation(member, unit)
     if not UNITS[unit] then return nil end
     return UNITS[unit].threat and UNITS[unit].threat[member]

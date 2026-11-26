@@ -1,17 +1,29 @@
-Version 1.0.4 validation
+Version 1.0.5 local validation
 
-717 automated behavioral checks pass (659 previous plus 58 timer hiding/restore
-checks), plus Lua 5.1 syntax, TOC/bindings, initialization, class isolation and texture
-checks. Tests simulate both permissive and protected marker-write behavior.
+921 automated behavioral checks pass, plus Lua 5.1 syntax, TOC/bindings,
+initialization, class isolation and texture checks. This includes 70 protection /
+personal cleanse checks, 58 Forever encounter checks and 134 hide/restore checks.
 
-The commenter report does not establish whether they were leader/assistant.
-No live dungeon reproduction of that user's marking failure has been performed.
-AUTO previously meant an armed queue, so the old badge did not prove a successful
-write. The new badge requires a confirmed, currently readable automatic marker.
+Protection tests cover concurrent buffs, independent observed deadlines, readable
+early removal, zero absorb, secret identities/expirations/amounts, bounded remembered
+timing, death/mount suppression, full-colour artwork, fixed positions, Effects /
+Reduced Motion, individual switches and middle-click hiding/restoration.
 
-Runtime marker refusal is detected and reported; it is not bypassed. A blocked
-SetRaidTarget call is not guaranteed to raise a Lua error, so its native blocked/
-forbidden event is checked too. Tests cannot prove automatic marking is supported
-by an actual restricted Forever client. Native target-marker controls are the
-fallback. /ptk markstatus is intended to identify the report's actual blocker.
-Public CurseForge publishing: not performed by the assistant.
+Personal cleanse is client-filtered, player-only and learned-spell-aware. Tests
+cover Magic/Poison/Disease, Purify vs Cleanse, curses, Forbearance, missing spell
+knowledge, hidden data, the master reminder switch and restoration.
+
+Encounter tests cover private ribbon cues, dismissal/rearming, manual-plan retention,
+observed casts/channels/adds/health crossings, target changes, dead/idle units,
+version/instance restrictions, preview privacy and per-plan source/version metadata.
+All twelve new plans fit explicit sharing. These modules never automatically send
+chat, play alert sounds or change markers.
+
+Native Forever validation of the new indicators and encounter cues has not yet
+been performed. Actual client visibility, removable-aura filtering, icon loading
+and animation pacing need in-game review. Refreshed plans are researched, not
+live-tested; older manual entries have not been re-certified by this update.
+
+No public 1.0.5 tag was pushed during this build. Derek confirmed GitHub-to-CurseForge
+sync worked for v1.0.4. The next public file should display as
+PaladinTankKit-1.0.5.zip, per release/RELEASE_PROCESS.md.

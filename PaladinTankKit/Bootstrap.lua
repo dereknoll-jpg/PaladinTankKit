@@ -71,7 +71,7 @@ events:SetScript("OnEvent", function(_, event, ...)
             animationElapsed, auraElapsed = animationElapsed + elapsed, auraElapsed + elapsed
             markingElapsed = markingElapsed + elapsed
             if markingElapsed >= 0.35 then PTK:AutoMarkTick(); markingElapsed = 0 end
-            if auraElapsed >= 0.2 then PTK:RefreshAuras(); auraElapsed = 0 end
+            if auraElapsed >= 0.2 then PTK:RefreshAuras(); PTK:UpdateEncounterCue(); auraElapsed = 0 end
             if animationElapsed >= 1/60 then PTK:Render(); animationElapsed = 0 end
         end)
         PTK:UpdatePermissionAlert(); PTK:Render()
@@ -121,5 +121,5 @@ events:SetScript("OnEvent", function(_, event, ...)
     -- Target/nameplate/marker changes must not invalidate the player's buff snapshot.
     if auraEvents[event] then PTK:RefreshAuras()
     elseif event == "UPDATE_INVENTORY_DURABILITY" or event == "PLAYER_EQUIPMENT_CHANGED" then PTK:RefreshShieldState() end
-    PTK:RefreshUsedCooldowns(); PTK:Render()
+    PTK:UpdateEncounterCue();PTK:RefreshUsedCooldowns(); PTK:Render()
 end)

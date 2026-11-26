@@ -55,6 +55,10 @@ const markingStatus = scenario('PALADIN');
 markingStatus(fs.readFileSync(path.join(__dirname, 'marking-status.lua'), 'utf8'), 'Marking failure diagnostics');
 const timerHiding = scenario('PALADIN');
 timerHiding(fs.readFileSync(path.join(__dirname, 'timer-hiding.lua'), 'utf8'), 'Timer hiding and restoration');
+const protection = scenario('PALADIN');
+protection(fs.readFileSync(path.join(__dirname, 'protection.lua'), 'utf8'), 'Fixed protection and personal cleanse');
+const encounterCues = scenario('PALADIN');
+encounterCues(fs.readFileSync(path.join(__dirname, 'encounter-cues.lua'), 'utf8'), 'Forever encounter cues');
 for (const [file, w, h] of [['Halo',64,64], ['Trail',128,8], ['Sweep',32,32],
   ['IconFace',64,64], ['IconRim',64,64], ['IconLight',64,64], ['IconShade',64,64], ['IconGlow',64,64], ['Rail',256,4]]) {
   const b = fs.readFileSync(path.join(dir, 'Media', `${file}.tga`));

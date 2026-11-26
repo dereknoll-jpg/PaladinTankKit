@@ -55,7 +55,7 @@ function P:ToggleSettings()
     local close=self:QuietButton(panel,"x",26,26,function() panel:Hide() end); close:SetPoint("TOPRIGHT",-18,-18)
     local rule=panel:CreateTexture(nil,"ARTWORK")
     rule:SetTexture(media.."Rail"); rule:SetVertexColor(.84,.67,.36,.35); rule:SetSize(616,1); rule:SetPoint("TOPLEFT",22,-94)
-    self.settingsPages,self.settingsTabs,self.checks={},{},{}
+    self.settingsPages,self.settingsTabs,self.checks,self.toggleRows={},{},{},{}
     local function page(key,title,description)
         local f=CreateFrame("Frame",nil,panel); f:SetSize(440,364); f:SetPoint("TOPLEFT",194,-116)
         label(f,title,19,.92,.88,.78):SetPoint("TOPLEFT",0,0)
@@ -66,15 +66,18 @@ function P:ToggleSettings()
     local timers=page("timers","Your abilities, one timeline.","Middle-click an icon to hide it. Re-enable it below.")
     self.restoreTimersButton=self:QuietButton(timers,"Restore all",98,24,function()self:RestoreTimers()end)
     self.restoreTimersButton:SetPoint("TOPRIGHT",0,0)
+    local protection=page("protection","Active protection.","Fixed icons above the rail. Middle-click to hide.")
+    self.restoreProtectionButton=self:QuietButton(protection,"Restore all",98,24,function()self:RestoreTimers()end)
+    self.restoreProtectionButton:SetPoint("TOPRIGHT",0,0)
     local marking=page("marking","You choose the pull.","Select a living elite to begin. Mouseover only scouts.")
     local appearance=page("appearance","A little light.","Soft edges and fluid motion, at your preferred scale.")
-    for i,tab in ipairs({{"general","Overview"},{"timers","Ability timers"},{"marking","Dungeon marking"},{"appearance","Appearance"}}) do
+    for i,tab in ipairs({{"general","Overview"},{"timers","Ability timers"},{"protection","Protection"},{"marking","Dungeon marking"},{"appearance","Appearance"}}) do
         local key=tab[1]
         local b=self:QuietButton(panel,tab[2],150,36,function() self:SelectSettingsPage(key) end)
         b:SetPoint("TOPLEFT",22,-116-(i-1)*45); self.settingsTabs[key]=b
     end
-    label(panel,"PALADIN ONLY",9,.40,.45,.47):SetPoint("TOPLEFT",28,-318)
-    label(panel,"/ptk help",11,.61,.57,.46):SetPoint("TOPLEFT",28,-338)
+    label(panel,"PALADIN ONLY",9,.40,.45,.47):SetPoint("TOPLEFT",28,-361)
+    label(panel,"/ptk help",11,.61,.57,.46):SetPoint("TOPLEFT",28,-381)
     local function toggle(parent,index,key,title,hint)
         local row=self:QuietButton(parent,"",440,44,function()
             self.db[key]=not self.db[key]
@@ -88,10 +91,11 @@ function P:ToggleSettings()
         row.track:SetSize(32,16); row.track:SetPoint("RIGHT",-13,0)
         row.knob=row:CreateTexture(nil,"OVERLAY"); row.knob:SetTexture(media.."IconFace"); row.knob:SetSize(12,12)
         self.checks[key]=row
+        row.option=key;self.toggleRows[#self.toggleRows+1]=row
         return row
     end
     toggle(general,1,"enabled","Tank mode","Enable the toolkit on this Paladin.")
-    toggle(general,2,"warnings","Reminders","Master switch for buff and shield reminders.")
+    toggle(general,2,"warnings","Reminders","Master switch for buff, shield and cleanse reminders.")
     toggle(general,3,"warnFury","Righteous Fury","Assigned tank: flashing missing-buff reminder.")
     toggle(general,4,"warnAura","Devotion Aura","Accepts another group Paladin's equal/higher rank.")
     toggle(general,5,"warnShield","Equipped shield","Warn at 20% durability or below.")
@@ -101,12 +105,22 @@ function P:ToggleSettings()
         {"trackJustice","Hammer of Justice","Cooldown after use; clears after readiness."},
         {"trackHoly","Holy Shield","Actual buff duration, including early removal."},
         {"trackBulwark","Templar's Bulwark","Only when talented and a cooldown is active."},
-        {"showForbearance","Forbearance","A small badge only while active."}}) do toggle(timers,i,option[1],option[2],option[3]) end
+        {"showForbearance","Forbearance","A fixed protection badge only while active."}}) do toggle(timers,i,option[1],option[2],option[3]) end
+    for i,option in ipairs({{"showIronCreed","Iron Creed","Holy Strike protection; observed buff only."},
+        {"showSpellBlock","Spell block","Shieldsworn's observed spell-block window."},
+        {"showBulwarkActive","Bulwark active shield","Separate from its cooldown on the rail."},
+        {"showForbearance","Forbearance badge","Shows above the rail while active."},
+        {"forbearanceAware","Forbearance awareness","Flag Bulwark; list affected learned defensives."},
+        {"warnCleanse","Personal cleanse","Quiet reminder for a removable personal debuff."}}) do
+        -- Forbearance already has a visibility switch on Ability timers.
+        toggle(protection,i,option[1],option[2],option[3])
+    end
     toggle(marking,1,"autoMark","Automatic dungeon marks","Skull and Cross. Requires leader or assistant.")
     toggle(marking,2,"bossNotes","Boss notes","Private first. Share only when you choose.")
-    label(marking,"TARGET  >  PRIORITIZE  >  PROMOTE",11,.85,.70,.43):SetPoint("TOPLEFT",12,-174)
+    toggle(marking,3,"encounterCues","Encounter cues","Private, observed events from Forever sources.")
+    label(marking,"TARGET  >  PRIORITIZE  >  PROMOTE",11,.85,.70,.43):SetPoint("TOPLEFT",12,-205)
     local explanation=label(marking,"Your target starts the queue, including before combat.\nEngaged enemies join as the pull develops.\nDangerous enemies and casters may take priority.\n\nNon-elites are never marked. Raids, world bosses\nand outdoor encounters remain manual.",12,.63,.68,.70)
-    explanation:SetPoint("TOPLEFT",12,-201); explanation:SetJustifyH("LEFT")
+    explanation:SetPoint("TOPLEFT",12,-227); explanation:SetJustifyH("LEFT")
     local resume=self:QuietButton(marking,"Resume marking",150,30,function() self:Command("resume") end); resume:SetPoint("TOPLEFT",12,-316)
     for i,option in ipairs({{"effects","Light effects","Soft halos, face lighting and feathered trails."},
         {"reducedMotion","Reduced motion","Keep the light. Remove pulses and travel effects."},
@@ -130,7 +144,8 @@ function P:ToggleSettings()
 end
 
 function P:TickSettings(elapsed)
-    for key,row in pairs(self.checks or {}) do
+    for _,row in ipairs(self.toggleRows or {}) do
+        local key=row.option
         local target=self.db[key] and 1 or 0
         row.position=(not self.db.effects or self.db.reducedMotion) and target or ((row.position or target)+(target-(row.position or target))*(1-math.exp(-20*math.min(elapsed or .016,.1))))
         row.track:SetVertexColor(.88,.72,.43,.12+row.position*.23)

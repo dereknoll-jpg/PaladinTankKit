@@ -1,4 +1,4 @@
-# Dungeon coverage — Paladin TankKit 0.3 beta
+# Dungeon coverage — Paladin TankKit 1.0.5
 
 28 instance catalogs; 193 boss notes; 58 named priority entries.
 

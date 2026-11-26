@@ -137,3 +137,10 @@ A third-party report described AUTO without marks; their leader/assistant status
 Primary in-client error report: https://github.com/seblindfors/ConsolePort/issues/269 records Forever refusing SetRaidTarget as protected, including out of combat. Blizzard's Forever secure action implementation routes raidtarget through the secure handler: https://raw.githubusercontent.com/Gethe/wow-ui-source/forever/Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua . This means a direct addon SetRaidTarget call is not a reliable promise of automatic marking, even with leadership. No bypass is implemented or claimed. The protected-action event payload is documented in https://raw.githubusercontent.com/Gethe/wow-ui-source/forever/Interface/AddOns/Blizzard_APIDocumentationGenerated/RestrictedActionsDocumentation.lua .
 
 TankKit now listens for its own blocked/forbidden marker calls, stops further attempts, and directs users to the game's own target-marker bindings/menu. A successful pcall is not treated as proof of permission or server acceptance. AUTO requires a confirmed visible owned marker; pending and blocked states have distinct badges and /ptk markstatus diagnostics. Existing party/elite/selection/identity checks remain. Leader/assistant remains TankKit's requested single-marker ownership policy; being assigned Tank does not satisfy that policy. Automated tests cover simulated behavior only. The report still needs live role/status output to determine its specific cause.
+## Version 1.0.5 additions
+
+The fixed protection indicators and twelve refreshed plans use Wowhead Forever
+1.60.1 sources reviewed November 26, 2026. See [FOREVER_1_60_1.md](FOREVER_1_60_1.md)
+for effect IDs, exact encounter sources, version gating and live-test limitations.
+Only that reviewed catalog can generate the new private encounter cues. Historical
+coverage in earlier sections describes older manual plans, not a recheck of all 193 plans.

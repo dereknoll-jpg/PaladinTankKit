@@ -1,10 +1,10 @@
 # Paladin TankKit — WoW Forever
 
-**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.4**.
+**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.5**.
 
 ## Install
 
-Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.4.zip`. Generated archives and local installation backups are excluded from this repository.
+Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.5.zip`. Generated archives and local installation backups are excluded from this repository.
 
 ![Paladin TankKit settings](release/media/gallery/01-overview.png)
 
@@ -16,9 +16,9 @@ Type `/ptk` for the redesigned settings: Overview, Ability timers, Dungeon marki
 
 ## Timers and motion
 
-Middle-click an ability timer or Forbearance badge to hide it without stopping tracking. Restore individual items in `/ptk` > **Ability timers**, click **Restore all**, or type `/ptk restore`. Preferences are saved per character; enabling a timer does not display unused abilities.
+Middle-click an ability timer, protection badge or cleanse reminder to hide it. Restore individual items in `/ptk` > **Ability timers** or **Protection**, click **Restore all**, or type `/ptk restore`. Preferences are saved per character; enabling a timer does not display inactive effects.
 
-Version **1.0.4** replaces the earlier combat tracking flow with separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
+The combat tracking flow uses separate player-aura and cast/cooldown trackers. Each ability owns an independent deadline. Changing targets, Judgement, Seal procs and updates to another ability cannot restart it.
 
 - **Seals:** one selected Seal at a time. Real player buff expiration wins. A confirmed requested cast starts a fallback countdown using that Seal's previously observed duration, or a 30-second reference default if no duration has been observed. Neither Judgement nor hit procs refresh it. A brief handoff prevents the previous Seal or a stale same-Seal snapshot from undoing a recast.
 - **Consecration:** uses a readable player ground-effect slot or buff timer when possible. Otherwise it counts the successful cast's configured ground lifetime (8 seconds by default). A readable ability cooldown start can recover a missed cast. Ground lifetime and remaining cooldown are distinct.
@@ -26,6 +26,10 @@ Version **1.0.4** replaces the earlier combat tracking flow with separate player
 - **Holy Shield:** readable player buff duration, otherwise a bounded successful-cast estimate using its observed duration or a 10-second reference default. Readable buff removal clears it after the cast handoff. Hidden early charge consumption cannot be detected until the client exposes it.
 - **Templar's Bulwark:** only when learned and used, or an ongoing readable cooldown is recovered. Readable cooldown duration is preferred; fallback is previously observed duration, or 300 seconds reduced by readable Sacred Duty ranks.
 - **Forbearance:** a small badge while a timed player effect is available.
+
+Version **1.0.5** adds a fixed row above the existing five-icon timeline: Iron Creed, Shieldsworn's spell-block window, active Templar's Bulwark and Forbearance. These use observed player buff deadlines, clear on readable early removal, and never slide along the rail. Hidden reads retain only a previously observed bounded deadline, marked `~`. Bulwark's remaining absorb is shown on hover only when readable; it is never guessed from maximum health. Forbearance awareness flags the existing Bulwark cooldown and lists affected learned self-protection spells. Its badge and awareness switch are independent.
+
+An optional fixed personal cleanse reminder uses client-filtered removable debuffs and your learned Cleanse/Purify capabilities. It never prompts for curses, Forbearance or unreadable data, never casts for you, and adds no sound. The Reminders master switch also controls it. The Protection settings page provides individual switches; Reduced Motion and effects preferences apply to all status icons.
 
 **A leading `~` means estimated timing.** Cast estimates are replaced by readable client deadlines without waiting for combat to end. Estimates are not proof of readiness, and can be stale after a hidden reset or early buff removal. Timers with no usable deadline, and expired estimates, do not leave question-mark icons on the rail.
 
@@ -58,6 +62,8 @@ The catalog includes **28 dungeon instances, 193 selected boss notes and 58 name
 Target a supported boss to reveal **Notes**. Notes start collapsed and open as a **720 × 28 single-line ribbon**. Hover for the full note if it is clipped. Opening notes sends no chat. Click **Share** or use `/ptk share` to explicitly send a short party plan, limited to once per 15 seconds. `/ptk notes` prints the current plan privately.
 
 This is selected encounter coverage, not a complete dungeon journal. Some notes and mob identities use exact English names; full localization is not claimed. Sunken Temple's inherited tactics are explicitly labeled **Classic reference**. Several Shaper's Terrace entries have limited-confidence preparation notes and manual ordering. Unconfirmed inherited dungeon availability is recorded in the source ledger. Unsupported bosses receive no invented strategy; generic elite/caster marking still works in eligible dungeons.
+
+The new private encounter cues use twelve refreshed plans across The Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns, checked against Wowhead **Forever 1.60.1** pages. They respond only to readable casts, engaged adds or observed health crossings, without predicted cast schedules or automatic chat. Disable **Dungeon marking > Encounter cues** to keep plans manual. Older catalog plans retain their existing confidence labels and cannot generate these automatic cues. See [the source ledger](PaladinTankKit/FOREVER_1_60_1.md) for precise coverage and limitations.
 
 ## Commands
 

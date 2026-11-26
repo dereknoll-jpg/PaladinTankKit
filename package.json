@@ -1,6 +1,6 @@
 {
   "name": "paladin-tankkit-dev",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "scripts": { "test": "node tests/run.cjs", "media": "node scripts/build-media.cjs", "preview:skin": "node scripts/preview-icon-skin.cjs", "package": "powershell -NoProfile -File scripts/package.ps1" },
   "devDependencies": { "fengari": "0.1.5", "luaparse": "0.3.1" }

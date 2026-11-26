@@ -97,11 +97,13 @@ function P:PresentTimer(key, state, aura, now, label)
     if key == "justice" then r, g, b = 0.83, 0.77, 1 end
     if key == "holy" then r, g, b = 0.82, 0.90, 0.66 end
     if state == "ready" then r, g, b = 0.79, 0.9, 0.65 end
+    local locked=key=="bulwark" and self.db.forbearanceAware and self:ForbearanceActive(now)
+    if locked then r,g,b=1,.67,.35 end
     local warning = state == "active" and remaining and remaining > 0 and remaining <= 5
     local pulse = 0
     if animated and not self.db.reducedMotion then
         if warning then pulse = (math.sin(age*4.2)+1)*0.5
-        elseif state == "ready" and age < 1.25 then pulse = math.sin(clamp(age/1.25)*math.pi) end
+        elseif state == "ready" and not locked and age < 1.25 then pulse = math.sin(clamp(age/1.25)*math.pi) end
     end
     local reveal = animated and not self.db.reducedMotion and math.max(0, 1-age/0.48) or 0
     tile.halo:SetVertexColor(r, g, b); tile.trail:SetVertexColor(r, g, b)

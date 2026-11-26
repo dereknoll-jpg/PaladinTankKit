@@ -3,17 +3,19 @@ local _, PTK = ...
 function PTK:CurrentBossNote()
     if not self.db.enabled or not self.db.bossNotes then return nil end
     if self.preview then return self.dungeons[36].byName["edwin vancleef"] end
+    if not self:IsForeverNotesClient() then return nil end
     local instanceID, kind = self:Instance()
     if kind ~= "party" then return nil end
     for _, unit in ipairs({"target", "boss1", "boss2", "boss3", "boss4", "boss5"}) do
         if self:Call(UnitExists, unit) == true and self:Call(UnitIsDeadOrGhost, unit) == false then
             local _, npcID, name = self:UnitIdentity(unit)
             local e = self:CatalogEntry(instanceID, npcID, name)
-            if e and e.boss and e.note then return e end
+            if e and e.boss and e.note then return self:BossPlan(e) end
         end
     end
     local r = self.marking and self:ActiveMarkBoss()
-    if r and r.entry.note and r.unit then return r.entry end
+    if r and r.entry.note and r.unit then return self:BossPlan(r.entry) end
+    if self.encounterState then return self.encounterState.plan end
 end
 
 function PTK:BossNoteMessage(note)
@@ -45,7 +47,10 @@ end
 
 function PTK:CreateNotesUI()
     local button = self:QuietButton(self.frame,"Notes",60,22,function()
-        self.notesOpen = not self.notesOpen; self:RenderNotes()
+        if self.encounterCue and self.dismissedCue~=self.encounterCue.key and not self.notesOpen then
+            self.dismissedCue=self.encounterCue.key
+        else self.notesOpen=not self.notesOpen end
+        self:RenderNotes()
     end)
     self.notesButton = button
     button:SetPoint("TOPLEFT", 456, -5)
@@ -67,7 +72,8 @@ function PTK:CreateNotesUI()
         GameTooltip:SetOwner(card, "ANCHOR_TOP")
         GameTooltip:SetText(note.name, 0.94, 0.78, 0.47)
         GameTooltip:AddLine(note.note:gsub("{skull}", "Skull"):gsub("{cross}", "Cross"), 0.87, 0.87, 0.86, true)
-        local confidence = note.confidence == "classic-reference" and "Classic reference; verify in Forever."
+        local confidence = note.confidence=="forever-wowhead" and "Wowhead Forever 1.60.1; reviewed November 26, 2026."
+            or note.confidence == "classic-reference" and "Classic reference; verify in Forever."
             or (note.confidence == "limited" and "Mechanics still need confirmation; manual order." or "Guide recommendation; not tested live.")
         GameTooltip:AddLine(confidence, 0.55, 0.58, 0.61, true)
         GameTooltip:Show()
@@ -75,7 +81,10 @@ function PTK:CreateNotesUI()
     card:SetScript("OnLeave", function() GameTooltip:Hide() end)
     local share = self:QuietButton(card,"Share",72,20,function() self:ShareBossNote() end)
     share:SetPoint("RIGHT", -29, 0); self.noteShareButton=share
-    local close = self:QuietButton(card,"x",20,20,function() self.notesOpen = false; self:RenderNotes() end)
+    local close = self:QuietButton(card,"x",20,20,function()
+        self.notesOpen=false;self.dismissedCue=self.encounterCue and self.encounterCue.key;self:RenderNotes()
+    end)
+    self.noteCloseButton=close
     close:SetPoint("RIGHT", -5, 0)
     button:Hide(); card:Hide()
 end
@@ -83,13 +92,17 @@ end
 function PTK:RenderNotes()
     local note = self:CurrentBossNote()
     if note ~= self.displayedNote then
-        self.notesOpen = false; self.displayedNote = note
+        self.notesOpen = false; self.displayedNote = note;self.dismissedCue=nil
         self.noteProgress = 0; self.notesCard:Hide()
     end
     self.notesButton:SetShown(note ~= nil)
-    self:AnimateNotes(note ~= nil and self.notesOpen, GetTime())
+    local cue=self.db.encounterCues and self.encounterCue
+    if not cue then self.dismissedCue=nil end
+    local showCue=note and cue and cue.plan==note and cue.key~=self.dismissedCue
+    self:AnimateNotes(note ~= nil and (self.notesOpen or showCue), GetTime())
     self.noteShareButton.label:SetText(self.preview and "Preview" or "Share")
     if note then
-        self.noteBody:SetText((self.preview and "PREVIEW  |  " or "")..note.name .. "  |  " .. (note.note:gsub("{skull}", "Skull"):gsub("{cross}", "Cross")))
+        local body=showCue and cue.text or note.note
+        self.noteBody:SetText((self.preview and "PREVIEW  |  " or "")..note.name .. "  |  " .. (body:gsub("{skull}", "Skull"):gsub("{cross}", "Cross")))
     end
 end

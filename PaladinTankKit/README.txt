@@ -1,11 +1,24 @@
-Paladin TankKit 1.0.4 - WoW Forever (Interface 16001)
+Paladin TankKit 1.0.5 - WoW Forever (Interface 16001)
 Mark. Track. Protect.
 
 /ptk opens settings. /ptk version prints the currently loaded build.
 /ptk markstatus prints the actual marking state, blocker and permission details.
-Middle-click an ability timer or Forbearance badge to hide it. Restore individual
-items in /ptk > Ability timers; Restore all or /ptk restore enables all again.
+Middle-click an ability timer, protection badge or cleanse reminder to hide it.
+Restore items in /ptk > Ability timers or Protection; Restore all or /ptk restore
+enables all again. The new status icons stay fixed above the five-icon rail.
 Hiding is saved per character and does not stop tracking or cancel a buff.
+
+PROTECTION: Iron Creed, Shieldsworn spell block and active Templar's Bulwark use
+observed player buffs; hidden reads retain only an observed bounded deadline (~).
+Bulwark's remaining absorb appears on hover only when readable. Forbearance moves
+above the rail and can flag Bulwark as locked, with affected learned spells on hover.
+Personal cleanse is an optional, silent prompt for a client-filtered removable
+debuff matching your learned Cleanse/Purify. Each new feature has its own switch.
+
+ENCOUNTER CUES: Twelve refreshed plans in four dungeons use only Wowhead Forever
+1.60.1 sources. Relevant observed casts, engaged adds or health crossings can show
+a private cue in the existing ribbon. Disable Encounter cues for manual plans only.
+Older reference plans cannot trigger automatic cues. See FOREVER_1_60_1.md.
 
 Marking is client-dependent. Forever can protect addon SetRaidTarget calls even
 outside combat; leadership cannot override this. When blocked, use WoW's native

@@ -1,3 +1,13 @@
+# 1.0.5
+
+- Added fixed icons above the existing five-icon timeline for Iron Creed, Shieldsworn spell block, active Bulwark and Forbearance. New protection effects follow observed player buffs, including readable early removal and bounded remembered deadlines when timing is hidden.
+- Added readable Bulwark absorb details on hover and optional Forbearance awareness for its existing cooldown and affected learned self-protection spells.
+- Added a silent personal Cleanse/Purify reminder for client-filtered removable player debuffs. It respects learned spell capabilities, the Reminders master switch and its own toggle.
+- Added a Protection settings page, individual switches, middle-click hiding, Restore all and /ptk restore support. Existing effects and Reduced Motion preferences apply to the new icons.
+- Added twelve refreshed plans across four dungeons using Wowhead Forever 1.60.1 sources. Optional private ribbon cues respond to observed casts, engaged adds and selected health crossings; older reference notes cannot trigger these cues.
+- Kept the existing sliding timer keys and automatic marking behavior. No loose-Skull/threat-loss alert was added.
+- Added protection/cleanse and encounter regression scenarios, expanded hide/restore coverage and updated source/release documentation.
+
 # 1.0.4
 
 - Added middle-click hiding for all five ability timers and Forbearance, using saved per-character visibility settings without clearing tracking.

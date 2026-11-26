@@ -5,7 +5,7 @@ p:ToggleSettings();p:SelectSettingsPage("timers")
 -- Discover attached controls rather than assuming their field names.
 local frames={}
 for _,frame in ipairs(FRAMES) do if frame.timerOption then frames[#frames+1]=frame end end
-check(#frames==6,"Every timer and Forbearance has a hide control")
+check(#frames==10,"Every timer, protection effect and cleanse reminder has a hide control")
 local savedUsed=p.used
 local savedMarking=p.marking
 for _,frame in ipairs(frames) do

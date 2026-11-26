@@ -129,6 +129,7 @@ function P:RefreshAuras()
     end
     self:RefreshGround(helpful.ground)
     self:RefreshTankBuffs()
+    self:RefreshProtection()
 end
 
 function P:NoteCast(unit,id,intentional)

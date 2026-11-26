@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {lua, lauxlib, lualib, to_luastring, to_jsstring} = require('fengari');
 const root = path.resolve(__dirname, '..');
+const version = fs.readFileSync(path.join(root,'PaladinTankKit','PaladinTankKit.toc'),'utf8').match(/^## Version: (.+)$/m)[1].trim();
 const L = lauxlib.luaL_newstate(); lualib.luaL_openlibs(L);
 function run(source) {
   if (lauxlib.luaL_loadbuffer(L,to_luastring(source),null,to_luastring('catalog report')) !== lua.LUA_OK ||
@@ -25,7 +26,7 @@ for id, d in pairs(CATALOG.dungeons) do
    wings=d.wings and table.concat(d.wings, ', ') or ''}
 end
 table.sort(rows, function(a,b) return a.name < b.name end)
-local out = {'# Dungeon coverage — Paladin TankKit 0.3 beta', '',
+local out = {'# Dungeon coverage — Paladin TankKit ${version}', '',
  #rows .. ' instance catalogs; ' .. notes .. ' boss notes; ' .. mobs .. ' named priority entries.', '',
  'Every previously uncovered dungeon in the current level 13–60 guide list has a catalog. Counts below describe selected notes, not complete encounter or rare-spawn rosters. Scarlet Monastery, Blackrock Spire, Dire Maul and Stratholme share catalogs across their wings.', '',
  '| Dungeon | Boss notes | Named priorities | Confidence / scope |', '| --- | ---: | ---: | --- |'}
