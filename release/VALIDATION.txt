@@ -24,6 +24,7 @@ been performed. Actual client visibility, removable-aura filtering, icon loading
 and animation pacing need in-game review. Refreshed plans are researched, not
 live-tested; older manual entries have not been re-certified by this update.
 
-No public 1.0.5 tag was pushed during this build. Derek confirmed GitHub-to-CurseForge
-sync worked for v1.0.4. The next public file should display as
-PaladinTankKit-1.0.5.zip, per release/RELEASE_PROCESS.md.
+Release publishing authorized November 26, 2026. The annotated release tag is
+PaladinTankKit-1.0.5.zip, matching the requested CurseForge display name. Release
+notes come from release/RELEASE_NOTES.md. Derek confirmed the configured
+GitHub-to-CurseForge sync worked for v1.0.4; verify the new public file after pushing.
