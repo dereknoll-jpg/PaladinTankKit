@@ -92,8 +92,8 @@ events:SetScript("OnEvent", function(_, event, ...)
         PTK:MarkActionBlocked(...);PTK:Render();return
     end
     if event == "UNIT_SPELLCAST_SENT" then
-        local unit, _, guid, spellID = ...
-        PTK:RememberCastRequest(unit,guid,spellID)
+        local unit, targetName, guid, spellID = ...
+        PTK:RememberCastRequest(unit,guid,spellID,targetName)
         return
     elseif event == "UNIT_SPELLCAST_START" then
         PTK:RememberCastRequest(...)

@@ -32,7 +32,7 @@ function P:CreateProtectionUI(makeTile,tooltip,makeText)
                 detail=detail.."\nRemaining absorb: "..math.floor(effect.amount)
                 if effect.capacity then detail=detail.."\nFill is relative to the largest absorb observed for this application, not a guaranteed original maximum." end
             end
-            return detail.."\nUses the observed player buff, including early removal.\n~ means the last observed deadline is temporarily remembered."
+            return detail.."\nReadable player buff timing and early removal take priority.\n~ means a confirmed-cast estimate or remembered deadline. Hidden early removal cannot be detected until WoW exposes it."
         end)
         tile:Hide();tile.pin:Hide()
         self.statusTiles[def.key]=tile

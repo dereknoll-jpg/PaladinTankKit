@@ -126,6 +126,7 @@ function P:RefreshAuras()
             self.memory[key]={active=true,expires=live.expires,duration=live.duration,estimated=true}
             if live.duration and live.duration>0 and live.duration<86400 then
                 self.db.observedDurations[key=="seal" and (live.name or "seal") or key]=live.duration
+                if key=="forbearance" then self.db.observedDurations.forbearanceTalentRank=(self.talentRanks or {})["sacred duty"] or 0 end
             end
             self.effectTimers[key]=nil
             if key=="holy" then self.used.holy=true end
@@ -142,6 +143,10 @@ function P:RefreshAuras()
             self.auras[key]={active=false};self.memory[key]=nil;self.effectTimers[key]=nil
         end
     end
+    local fury=self.auras.fury
+    if fury and fury.active and not fury.uncertain then self.lastKnownFury=true
+    elseif fury and fury.active==false and not hidden.fury
+        and not (self.furyCastGrace and now<self.furyCastGrace) then self.lastKnownFury=false end
     self:RefreshGround(helpful.ground)
     self:RefreshTankBuffs()
     self:RefreshProtection()
@@ -149,11 +154,12 @@ function P:RefreshAuras()
     self.lastAuraRefresh=now
 end
 
-function P:NoteCast(unit,id,intentional)
+function P:NoteCast(unit,id,intentional,selfTarget)
     if not self:Readable(unit) or unit~="player" or not self:Number(id) then return end
     local info=self:SpellInfo(id)
     local name=self:Field(info,"name")
     local key=self.byID[id] or (name and self.byName[name])
+    self:NoteProtectionCast(id,name,intentional,selfTarget)
     if not key and self:IsAdditionalSeal(id,name) then key="seal" end
     local now=GetTime()
     if key=="seal" then
@@ -174,7 +180,10 @@ function P:NoteCast(unit,id,intentional)
         self.used.holy=true;self.lastHolyCast=now;self:StartEffectEstimate(key,id)
     elseif key=="justice" or (key=="bulwark" and (self.spells.bulwark.known or self:IsKnownSpell(id)==true)) then
         self:NoteUsedCooldown(key,id)
-    elseif key=="fury" then self.memory.fury=nil;self.furyCastGrace=now+1.5 end
+    elseif key=="fury" then
+        self.memory.fury=nil;self.furyCastGrace=now+1.5
+        if intentional then self.lastKnownFury=true end
+    end
 end
 
 function P:StartEffectEstimate(key,id)

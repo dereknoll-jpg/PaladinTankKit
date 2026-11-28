@@ -1,10 +1,10 @@
 # Paladin TankKit — WoW Forever
 
-**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.6**.
+**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.7**.
 
 ## Install
 
-Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.6.zip`. Generated archives and local installation backups are excluded from this repository.
+Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.7.zip`. Generated archives and local installation backups are excluded from this repository.
 
 ![Paladin TankKit settings](release/media/gallery/01-overview.png)
 
@@ -27,7 +27,7 @@ The combat tracking flow uses separate player-aura and cast/cooldown trackers. E
 - **Templar's Bulwark:** only when learned and used, or an ongoing readable cooldown is recovered. Readable cooldown duration is preferred; fallback is previously observed duration, or 300 seconds reduced by readable Sacred Duty ranks.
 - **Forbearance:** a small badge while a timed player effect is available.
 
-Version **1.0.5** adds a fixed row above the existing five-icon timeline: Iron Creed, Shieldsworn's spell-block window, active Templar's Bulwark and Forbearance. These use observed player buff deadlines, clear on readable early removal, and never slide along the rail. Hidden reads retain only a previously observed bounded deadline, marked `~`. Bulwark's remaining absorb is shown on hover only when readable; it is never guessed from maximum health. Forbearance awareness flags the existing Bulwark cooldown and lists affected learned self-protection spells. Its badge and awareness switch are independent.
+Version **1.0.5** adds a fixed row above the existing five-icon timeline: Iron Creed, Shieldsworn's spell-block window, active Templar's Bulwark and Forbearance. Readable player buff deadlines take priority, clear on readable early removal, and never slide along the rail. Confirmed player casts can now start bounded estimates during hidden combat timing, marked `~`; unconfirmed requests and proc notifications cannot. Bulwark's remaining absorb is shown on hover only when readable; it is never guessed from maximum health. Forbearance awareness flags the existing Bulwark cooldown and lists affected learned self-protection spells. Its badge and awareness switch are independent.
 
 An optional fixed personal cleanse reminder uses client-filtered removable debuffs and your learned Cleanse/Purify capabilities. It never prompts for curses, Forbearance or unreadable data, never casts for you, and adds no sound. The Reminders master switch also controls it. The Protection settings page provides individual switches; Reduced Motion and effects preferences apply to all status icons.
 
@@ -40,6 +40,8 @@ The HUD remains a **520 × 42 horizontal rail**. Timers move right to left, sepa
 Grouped Paladins assigned **Tank** (or legacy Main Tank) get larger blinking orange warnings for missing **Righteous Fury** and **Devotion Aura**. Selecting another aura does not satisfy the Devotion reminder. Another group Paladin can provide coverage only when their Devotion buff is on you and its spell rank is equal to or higher than your best learned Devotion rank. Lower-rank or out-of-range coverage does not suppress the warning. Unreadable rank/source/coverage data is treated as uncertain, not proof of a missing aura. Rank comparison covers the seven cataloged Devotion ranks; it does not compare another player's talent-enhanced armor amount.
 
 Inside a party dungeon, a confirmed missing tank buff plays one sound after a short debounce. Persistent absence does not repeat the sound; confirmed restoration rearms it. A readable gap does not rearm an already sounded episode. The Overview page has independent reminder switches and a Dungeon alert sound switch. Reduced Motion keeps a strong static warning. Buff alerts are suppressed while solo, unassigned, in another role, dead, mounted or previewing. Raid tank warnings remain visual. Equipped-shield durability reminders still work separately, including solo. Missing Seals and low mana do not produce alerts.
+
+Version **1.0.7** fixes first-use combat initialization for all four timed upper-row effects. Bulwark starts its active duration and separate Forbearance estimate from a confirmed player cast. Holy Strike can start Iron Creed and spell block only with the relevant cached talent and Fury/shield conditions. Forbearance estimates from Blessing of Protection require a proven self target. Actual readable buff timing and removal override estimates. Hidden early removal cannot be known until WoW exposes it; no absorb amount is estimated.
 
 The existing Iron Creed and Shieldsworn icons can gain an amber edge in their final two seconds, only with an observed deadline. **Protection expiration** and **Bulwark absorb fill** have independent switches on Protection. Reduced Motion keeps the edge steady and makes absorb changes immediate. The fill shows remaining readable absorb relative to the largest amount observed for that application; it is not a promise of the shield's original capacity. Secret values hide the fill immediately. Middle-click still hides the whole status icon.
 

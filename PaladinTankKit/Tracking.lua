@@ -85,12 +85,13 @@ function P:RefreshShieldState(force)
     self.shieldWarning = nil
     self.shieldEquipped=nil
     local id,known = self:Call(GetInventoryItemID, "player", 17)
-    if known and id==nil then self.shieldEquipped=false;return end
+    if known and id==nil then self.shieldEquipped=false;self.lastKnownShield=false;return end
     local itemAPI = C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant
     if not self:Number(id) or type(itemAPI) ~= "function" or type(GetInventoryItemDurability) ~= "function" then return end
     local ok, _, _, _, equipLoc = pcall(itemAPI, id)
     if not ok or not self:Readable(equipLoc) or type(equipLoc)~="string" or equipLoc=="" then return end
     self.shieldEquipped=equipLoc=="INVTYPE_SHIELD"
+    self.lastKnownShield=self.shieldEquipped
     if not self.shieldEquipped then return end
     local readable, current, maximum = pcall(GetInventoryItemDurability, 17)
     if not readable or not self:Number(current) or not self:Number(maximum)

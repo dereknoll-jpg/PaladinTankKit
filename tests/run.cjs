@@ -39,6 +39,8 @@ const assisted = scenario('PALADIN', false);
 assisted(fs.readFileSync(path.join(__dirname, 'assisted-marking.lua'), 'utf8'), 'Secure assisted marking');
 const polish = scenario('PALADIN');
 polish(fs.readFileSync(path.join(__dirname, 'protection-polish.lua'), 'utf8'), 'Protection polish and scan efficiency');
+const combatProtection = scenario('PALADIN');
+combatProtection(fs.readFileSync(path.join(__dirname, 'combat-protection.lua'), 'utf8'), 'First-cast combat protection');
 run(fs.readFileSync(path.join(__dirname, 'behavior.lua'), 'utf8'), 'Behavior tests');
 const marking = scenario('PALADIN', true);
 marking(fs.readFileSync(path.join(__dirname, 'marking.lua'), 'utf8'), 'Dungeon marking and notes');

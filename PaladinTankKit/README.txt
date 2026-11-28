@@ -1,4 +1,4 @@
-Paladin TankKit 1.0.6 - WoW Forever (Interface 16001)
+Paladin TankKit 1.0.7 - WoW Forever (Interface 16001)
 Mark. Track. Protect.
 
 /ptk opens settings. /ptk version prints the currently loaded build.
@@ -15,7 +15,10 @@ Hidden values remove the fill. Both visuals have Protection switches.
 Missing shield has a separate Overview switch for assigned group tanks only.
 
 PROTECTION: Iron Creed, Shieldsworn spell block and active Templar's Bulwark use
-observed player buffs; hidden reads retain only an observed bounded deadline (~).
+readable player buffs, with bounded confirmed-cast fallback during hidden combat
+timing (~). Holy Strike estimates require learned talents and confirmed Fury/shield
+conditions. Forbearance fallback covers Bulwark/self-immunities and proven self BoP.
+Readable timing/removal wins; hidden early removal cannot be detected immediately.
 Bulwark's remaining absorb appears on hover only when readable. Forbearance moves
 above the rail and can flag Bulwark as locked, with affected learned spells on hover.
 Personal cleanse is an optional, silent prompt for a client-filtered removable

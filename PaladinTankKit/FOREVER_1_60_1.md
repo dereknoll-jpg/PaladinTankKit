@@ -85,3 +85,17 @@ The reviewed override catalog now contains fourteen plans in four dungeons. Six 
 Leech Poison encounter cues require an already-detected, client-filtered removable personal debuff with the matching readable English name. They inherit the personal-reminder toggle and require an observed engaged supported boss. No boss cast schedule or party-debuff scan is added.
 
 Bulwark's fill uses observed aura points and the largest readable value for that application; hidden data hides the fill while retaining only the historical baseline and deadline. A first observation after partial consumption can start at full relative fill: it is not the original maximum.
+
+## November 28, 2026 — first-use combat protection correction
+
+This supersedes the observed-only initialization policy above. Combat may hide a buff's initial numeric deadline even while the successful player cast can be correlated. The upper row now follows the main rail's bounded confirmed-cast fallback policy, marked ~. Readable aura data wins; hidden early removal cannot be inferred. No absorb amount, enemy debuff or cleanse eligibility is invented.
+
+Verified Forever sources:
+
+- Active Iron Creed (6 seconds): https://www.wowhead.com/forever/spell=1311033/iron-creed . Talent identity 1311034: https://www.wowhead.com/forever/spell=1311034/iron-creed . Its fallback requires the talent and last-confirmed Righteous Fury.
+- Active spell block (6 seconds): https://www.wowhead.com/forever/spell=1328551/shieldsworn . Passive talent identity 1328544 and all affected Holy Strike ranks: https://www.wowhead.com/forever/spell=1328544/shieldsworn . Verified playable ranks: 678, 679, 680, 1866, 2495, 5569, 10332 and 10333. The overview guide links an older NPC Holy Strike ID; it is not used as the fallback identity.
+- Bulwark's 8-second absorb and Forbearance application: https://www.wowhead.com/forever/guide/classes/paladin/protection/overview-pve-tank . Only an intentional correlated player success can seed these estimates, never cooldown recovery.
+- Sacred Duty's Forbearance duration reduction: https://www.wowhead.com/forever/spell=1224697/sacred-duty . The rank details show 5/10-second reductions; cached ranks adjust the 60-second fallback. A readable observed duration takes priority when its recorded rank still matches.
+- Self-only immunity references: https://www.wowhead.com/forever/spell=642/divine-shield and https://www.wowhead.com/forever/spell=498/divine-protection . Blessing of Protection requires a readable SENT target matching the cached player name/realm; unknown and other targets never create self Forbearance.
+
+A short 0.75-second handoff tolerates initial aura-application lag and an older pre-refresh snapshot. Readable absence after handoff clears the estimate. A readable zero absorb clears Bulwark immediately, including during handoff. Learned duration values are historical observations, not proof a hidden effect remains active.

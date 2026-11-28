@@ -1,6 +1,6 @@
 local _, PTK = ...
 
-PTK.version = "1.0.6"
+PTK.version = "1.0.7"
 -- Forever marking is player-triggered. The retained queue is never armed in this mode.
 PTK.assistedMarking = true
 PTK.timerKeys = {"seal", "ground", "justice", "holy", "bulwark"}

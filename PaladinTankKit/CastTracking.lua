@@ -61,7 +61,7 @@ function P:InstallCastObservers()
     end)
 end
 
-function P:RememberCastRequest(unit,guid,id)
+function P:RememberCastRequest(unit,guid,id,targetName)
     if not self:Readable(unit) or unit~="player" then return end
     local now,intent=GetTime(),self.spellIntent
     local readableID=self:Number(id) and id or nil
@@ -70,7 +70,13 @@ function P:RememberCastRequest(unit,guid,id)
     if not readableID and self.pendingCast and now-self.pendingCast.at<=0.5
         and token and token==self.pendingCast.guid then readableID=self.pendingCast.id end
     -- A new SENT supersedes the old request, including untracked spells.
-    self.pendingCast={id=readableID,guid=token,at=now}
+    local previous=self.pendingCast
+    local selfTarget=self:Readable(targetName) and type(targetName)=="string" and self.playerCastNames
+        and self.playerCastNames[targetName]==true or false
+    -- START has no target-name payload; preserve the original SENT target only
+    -- when its readable cast GUID identifies the very same request.
+    if self:Readable(targetName) and targetName==nil and previous and token and token==previous.guid then selfTarget=previous.selfTarget end
+    self.pendingCast={id=readableID,guid=token,at=now,selfTarget=selfTarget}
     self.spellIntent=nil
 end
 
@@ -92,7 +98,7 @@ function P:SuccessfulCast(unit,guid,id)
     self.spellIntent=nil
     -- Fully hidden combat payloads can still confirm the one player SENT request.
     -- Without SENT + a readable spell request there is no fallback identity.
-    self:NoteCast(unit,readableID or (request and request.id),request and request.id~=nil)
+    self:NoteCast(unit,readableID or (request and request.id),request and request.id~=nil,request and request.selfTarget)
 end
 
 function P:NoteUsedCooldown(key,id)
@@ -156,4 +162,5 @@ function P:ClearUsedTimers()
     self.used,self.cooldownTimers,self.readyUntil={},{},{}
     self.effectTimers,self.pendingCast,self.spellIntent,self.sealPending={},nil,nil,nil
     self.activeSeal,self.lastSealCast,self.lastHolyCast=nil,nil,nil
+    self.protectionCasts,self.protection,self.lastKnownFury={},{},nil
 end
