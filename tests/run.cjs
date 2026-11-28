@@ -10,11 +10,10 @@ const files = toc.split(/\r?\n/).map(x => x.trim()).filter(x => x && !x.startsWi
 assert.match(toc, /## Interface: 16001/);
 for (const file of files) assert.ok(fs.existsSync(path.join(dir, file)), `Missing TOC file: ${file}`);
 const xml = fs.readFileSync(path.join(dir, 'Bindings.xml'), 'utf8');
-assert.match(xml, /name="PALADINTANKKIT_PULL"[^>]*>\s*PaladinTankKit_Pull\(\)/);
-for (const [binding, icon] of [['SKULL', 8], ['CROSS', 7], ['CLEAR', 0]]) {
-  assert.match(xml, new RegExp(`name="PALADINTANKKIT_${binding}"[^>]*>\\s*PaladinTankKit_Mark\\(${icon}\\)`));
-}
-function scenario(className) {
+assert.match(xml, /name="CLICK PaladinTankKitSkull:Mark"/);
+assert.match(xml, /name="CLICK PaladinTankKitCross:Mark"/);
+assert.ok(!xml.includes('PaladinTankKit_Mark(') && !xml.includes('PaladinTankKit_Pull('));
+function scenario(className, legacyQueue = false) {
   const L = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(L);
   function run(source, name) {
@@ -31,13 +30,19 @@ function scenario(className) {
     run(`assert(load(${JSON.stringify(source)}, ${JSON.stringify(file)}))('PaladinTankKit', TEST_NS)`, file);
   }
   run("TEST_NS.events.scripts.OnEvent(TEST_NS.events, 'ADDON_LOADED', 'PaladinTankKit')", 'Addon load');
+  // Retain regression coverage for the old queue, which production no longer uses.
+  if (legacyQueue) run('TEST_NS.assistedMarking=false', 'Legacy queue fixture');
   return run;
 }
-const run = scenario('PALADIN');
+const run = scenario('PALADIN', true);
+const assisted = scenario('PALADIN', false);
+assisted(fs.readFileSync(path.join(__dirname, 'assisted-marking.lua'), 'utf8'), 'Secure assisted marking');
+const polish = scenario('PALADIN');
+polish(fs.readFileSync(path.join(__dirname, 'protection-polish.lua'), 'utf8'), 'Protection polish and scan efficiency');
 run(fs.readFileSync(path.join(__dirname, 'behavior.lua'), 'utf8'), 'Behavior tests');
-const marking = scenario('PALADIN');
+const marking = scenario('PALADIN', true);
 marking(fs.readFileSync(path.join(__dirname, 'marking.lua'), 'utf8'), 'Dungeon marking and notes');
-const motion = scenario('PALADIN');
+const motion = scenario('PALADIN', true);
 motion(fs.readFileSync(path.join(__dirname, 'motion.lua'), 'utf8'), 'Motion and manual-only safeguards');
 const tracking = scenario('PALADIN');
 tracking(fs.readFileSync(path.join(__dirname, 'tracking.lua'), 'utf8'), 'Used spell tracking');
@@ -45,13 +50,13 @@ const reminders = scenario('PALADIN');
 reminders(fs.readFileSync(path.join(__dirname, 'reminders.lua'), 'utf8'), 'Paladin aura reminders');
 const defensives = scenario('PALADIN');
 defensives(fs.readFileSync(path.join(__dirname, 'defensives.lua'), 'utf8'), 'Defensive timers and equipped shield');
-const release = scenario('PALADIN');
+const release = scenario('PALADIN', true);
 release(fs.readFileSync(path.join(__dirname, 'release.lua'), 'utf8'), 'Version 1 release safeguards');
 const regressions = scenario('PALADIN');
 regressions(fs.readFileSync(path.join(__dirname, 'tracking-regressions.lua'), 'utf8'), 'Live tracking regressions');
 const combatTracking = scenario('PALADIN');
 combatTracking(fs.readFileSync(path.join(__dirname, 'combat-tracking.lua'), 'utf8'), 'Fully hidden combat tracking');
-const markingStatus = scenario('PALADIN');
+const markingStatus = scenario('PALADIN', true);
 markingStatus(fs.readFileSync(path.join(__dirname, 'marking-status.lua'), 'utf8'), 'Marking failure diagnostics');
 const timerHiding = scenario('PALADIN');
 timerHiding(fs.readFileSync(path.join(__dirname, 'timer-hiding.lua'), 'utf8'), 'Timer hiding and restoration');
@@ -68,7 +73,7 @@ for (const [file, w, h] of [['Halo',64,64], ['Trail',128,8], ['Sweep',32,32],
   const alpha = Array.from({length:w*h}, (_,i) => b[21+i*4]);
   assert.ok(Math.max(...alpha) > 120 && Math.min(...alpha) === 0, `${file} has a visible smooth alpha range`);
 }
-const other = scenario('WARRIOR');
+const other = scenario('WARRIOR', false);
 other(`assert(TEST_NS.frame == nil); assert(TEST_NS.events.scripts.OnUpdate == nil)
   PaladinTankKit_Mark(8); assert(#MARKS == 0)
   SlashCmdList.PALADINTANKKIT('preview'); assert(TEST_NS.frame == nil)`, 'Non-Paladin isolation');

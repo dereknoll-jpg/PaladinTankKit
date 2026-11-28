@@ -69,7 +69,7 @@ function P:ToggleSettings()
     local protection=page("protection","Active protection.","Fixed icons above the rail. Middle-click to hide.")
     self.restoreProtectionButton=self:QuietButton(protection,"Restore all",98,24,function()self:RestoreTimers()end)
     self.restoreProtectionButton:SetPoint("TOPRIGHT",0,0)
-    local marking=page("marking","You choose the pull.","Select a living elite to begin. Mouseover only scouts.")
+    local marking=page("marking","You choose the pull.","Select a target, then use Skull or X. Mouseover only scouts.")
     local appearance=page("appearance","A little light.","Soft edges and fluid motion, at your preferred scale.")
     for i,tab in ipairs({{"general","Overview"},{"timers","Ability timers"},{"protection","Protection"},{"marking","Dungeon marking"},{"appearance","Appearance"}}) do
         local key=tab[1]
@@ -79,14 +79,15 @@ function P:ToggleSettings()
     label(panel,"PALADIN ONLY",9,.40,.45,.47):SetPoint("TOPLEFT",28,-361)
     label(panel,"/ptk help",11,.61,.57,.46):SetPoint("TOPLEFT",28,-381)
     local function toggle(parent,index,key,title,hint)
-        local row=self:QuietButton(parent,"",440,44,function()
+        local compact=parent==general or parent==protection
+        local row=self:QuietButton(parent,"",440,compact and 34 or 44,function()
             self.db[key]=not self.db[key]
             if key=="autoMark" or key=="enabled" then self:ResetMarking() end
             self:SyncSettings(); self:Render()
         end)
-        row:SetPoint("TOPLEFT",0,-53-(index-1)*48); row.label:Hide()
-        label(row,title,13):SetPoint("TOPLEFT",12,-7)
-        label(row,hint,10,.49,.55,.58):SetPoint("TOPLEFT",12,-25)
+        row:SetPoint("TOPLEFT",0,-53-(index-1)*(compact and 38 or 48)); row.label:Hide()
+        label(row,title,compact and 12 or 13):SetPoint("TOPLEFT",12,compact and -4 or -7)
+        label(row,hint,compact and 9 or 10,.49,.55,.58):SetPoint("TOPLEFT",12,compact and -20 or -25)
         row.track=row:CreateTexture(nil,"ARTWORK"); row.track:SetTexture(media.."IconFace")
         row.track:SetSize(32,16); row.track:SetPoint("RIGHT",-13,0)
         row.knob=row:CreateTexture(nil,"OVERLAY"); row.knob:SetTexture(media.."IconFace"); row.knob:SetSize(12,12)
@@ -100,6 +101,7 @@ function P:ToggleSettings()
     toggle(general,4,"warnAura","Devotion Aura","Accepts another group Paladin's equal/higher rank.")
     toggle(general,5,"warnShield","Equipped shield","Warn at 20% durability or below.")
     toggle(general,6,"warningSounds","Dungeon alert sound","One sound per missing tank-buff episode.")
+    toggle(general,7,"warnMissingShield","Missing shield","Assigned tank: equip-shield reminder.")
     for i,option in ipairs({{"trackSeal","Active Seal","Uses Blizzard's actual buff expiration."},
         {"trackGround","Consecration","Ground-effect estimate, then remaining cooldown."},
         {"trackJustice","Hammer of Justice","Cooldown after use; clears after readiness."},
@@ -111,17 +113,19 @@ function P:ToggleSettings()
         {"showBulwarkActive","Bulwark active shield","Separate from its cooldown on the rail."},
         {"showForbearance","Forbearance badge","Shows above the rail while active."},
         {"forbearanceAware","Forbearance awareness","Flag Bulwark; list affected learned defensives."},
-        {"warnCleanse","Personal cleanse","Quiet reminder for a removable personal debuff."}}) do
+        {"warnCleanse","Personal cleanse","Quiet reminder for a removable personal debuff."},
+        {"protectionExpiryCue","Protection expiration","Amber edge in the final 2 seconds; no extra sound."},
+        {"bulwarkFill","Bulwark absorb fill","Readable absorb, relative to this cast's observed peak."}}) do
         -- Forbearance already has a visibility switch on Ability timers.
         toggle(protection,i,option[1],option[2],option[3])
     end
-    toggle(marking,1,"autoMark","Automatic dungeon marks","Skull and Cross. Requires leader or assistant.")
+    toggle(marking,1,"autoMark","Priority glow","Subtle advice for your selected dungeon elite. No auto marks.")
     toggle(marking,2,"bossNotes","Boss notes","Private first. Share only when you choose.")
     toggle(marking,3,"encounterCues","Encounter cues","Private, observed events from Forever sources.")
-    label(marking,"TARGET  >  PRIORITIZE  >  PROMOTE",11,.85,.70,.43):SetPoint("TOPLEFT",12,-205)
-    local explanation=label(marking,"Your target starts the queue, including before combat.\nEngaged enemies join as the pull develops.\nDangerous enemies and casters may take priority.\n\nNon-elites are never marked. Raids, world bosses\nand outdoor encounters remain manual.",12,.63,.68,.70)
+    label(marking,"SELECT  >  MARK  >  FOCUS",11,.85,.70,.43):SetPoint("TOPLEFT",12,-205)
+    local explanation=label(marking,"Click Skull or X to mark your selected target.\nShift-click Skull: X. Ctrl-click either: clear.\nBind these secure actions under Paladin TankKit.\n\nWoW Key Bindings > Raid Targeting also works.\nGroup permissions apply. No automatic promotion.\nPriority glow is dungeon-only, for readable elites.",12,.63,.68,.70)
     explanation:SetPoint("TOPLEFT",12,-227); explanation:SetJustifyH("LEFT")
-    local resume=self:QuietButton(marking,"Resume marking",150,30,function() self:Command("resume") end); resume:SetPoint("TOPLEFT",12,-316)
+    local resume=self:QuietButton(marking,"Marking help",150,30,function() self:Print(select(2,self:MarkingStatus())) end); resume:SetPoint("TOPLEFT",12,-338)
     for i,option in ipairs({{"effects","Light effects","Soft halos, face lighting and feathered trails."},
         {"reducedMotion","Reduced motion","Keep the light. Remove pulses and travel effects."},
         {"idleFade","Fade while idle","Keep the HUD quiet between pulls."},

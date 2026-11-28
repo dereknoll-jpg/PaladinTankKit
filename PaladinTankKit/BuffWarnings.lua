@@ -9,6 +9,12 @@ function P:IsAssignedTank()
     return self:Call(GetPartyAssignment,"MAINTANK","player")==true
 end
 
+function P:MissingShield()
+    return self.db.enabled and self.db.warnings and self.db.warnMissingShield and not self.preview
+        and not UnitIsDeadOrGhost("player") and not IsMounted()
+        and self.shieldEquipped==false and self:IsAssignedTank()
+end
+
 function P:IsGroupPaladin(unit)
     if type(unit)~="string" or unit=="player" or self:Call(UnitIsUnit,unit,"player")==true then return false end
     local exists=self:Call(UnitExists,unit)
@@ -77,7 +83,7 @@ function P:RefreshTankBuffs()
     if type(api.GetAuraDataByIndex)=="function" then
         local complete=true
         for index=1,255 do
-            local aura,ok=self:Call(api.GetAuraDataByIndex,"player",index,"HELPFUL")
+            local aura,ok=self:AuraAt(index,"HELPFUL")
             if not ok then complete=false;break end
             if aura==nil then break end
             if type(aura)~="table" then complete=false;break end
@@ -112,7 +118,7 @@ end
 
 function P:RenderTankBuffAlerts(now)
     local status=self:TankBuffStatus()
-    local urgent=false
+    local urgent=self:MissingShield() or false
     self.buffAlertEpisodes=self.buffAlertEpisodes or {}
     local _,kind=self:Instance()
     local sound=false

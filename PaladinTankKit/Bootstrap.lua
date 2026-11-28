@@ -1,19 +1,25 @@
 local addonName, PTK = ...
 BINDING_HEADER_PALADINTANKKIT = "Paladin TankKit"
-BINDING_NAME_PALADINTANKKIT_SKULL = "Mark Skull (mouseover / target)"
-BINDING_NAME_PALADINTANKKIT_CROSS = "Mark Cross (mouseover / target)"
-BINDING_NAME_PALADINTANKKIT_CLEAR = "Clear mark (mouseover / target)"
-BINDING_NAME_PALADINTANKKIT_PULL = "Mark Pull (smart elite priorities)"
+_G["BINDING_NAME_CLICK PaladinTankKitSkull:Mark"] = "Skull on selected target (secure)"
+_G["BINDING_NAME_CLICK PaladinTankKitCross:Mark"] = "X on selected target (secure)"
 function PaladinTankKit_Mark(icon) PTK:Mark(icon) end
 function PaladinTankKit_Pull() PTK:SmartMarkPull() end
 
 local events = CreateFrame("Frame")
 PTK.events = events
 local auraEvents = {UNIT_AURA=true, UNIT_SPELLCAST_SUCCEEDED=true, SPELLS_CHANGED=true,
+    UNIT_ABSORB_AMOUNT_CHANGED=true,
     PLAYER_TALENT_UPDATE=true, PLAYER_ENTERING_WORLD=true, PLAYER_DEAD=true, PLAYER_ALIVE=true,
     PLAYER_UNGHOST=true, PLAYER_MOUNT_DISPLAY_CHANGED=true, UPDATE_SHAPESHIFT_FORM=true,
     UPDATE_SHAPESHIFT_FORMS=true}
 events:RegisterEvent("ADDON_LOADED")
+
+function PTK:AuraPollInterval()
+    local now=GetTime()
+    if (self.sealPending and now<self.sealPending.untilTime)
+        or (self.lastHolyCast and now-self.lastHolyCast<3) then return .2 end
+    return InCombatLockdown() and .5 or 1
+end
 
 function PTK:Command(message)
     local cmd, argument = (message or ""):lower():match("^%s*(%S*)%s*(.-)%s*$")
@@ -23,6 +29,7 @@ function PTK:Command(message)
     elseif cmd == "auto" then self.db.autoMark = not self.db.autoMark; self:ResetMarking()
     elseif cmd == "pull" then self:SmartMarkPull(); return
     elseif cmd == "resume" then
+        if self.assistedMarking then self:ResetMarking();self:Print("Assisted marking ready. Select a target and use Skull/X.");return end
         if self.markingBlocked then self:Print(self.markingBlocked);return end
         self:ResetMarking(); self:Print("Auto marking reset; existing marks remain respected.")
     elseif cmd == "notes" then self:ShowBossNoteInChat(); return
@@ -40,7 +47,7 @@ function PTK:Command(message)
     elseif cmd == "help" then
         self:Print("/ptk settings | on | off | auto | pull | resume | notes | share")
         self:Print("/ptk unlock | lock | preview | restore | reset | ground 8")
-        self:Print("Bind Skull, Cross and Clear in WoW's Key Bindings under Paladin TankKit.")
+        self:Print("Bind secure Skull/X under Paladin TankKit, or use WoW's native Raid Targeting bindings.")
     else self:ToggleSettings() end
     self:SyncSettings(); self:Render()
 end
@@ -56,7 +63,7 @@ events:SetScript("OnEvent", function(_, event, ...)
         SlashCmdList.PALADINTANKKIT = function(message) PTK:Command(message) end
         if not PTK.isPaladin then return end
         PTK:ResetMarking(); PTK:DiscoverSpells(); PTK:InstallCastObservers(); PTK:RecoverCooldowns(); PTK:RefreshAuras(); PTK:CreateUI()
-        for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_START",
+        for _, name in ipairs({"PLAYER_ENTERING_WORLD", "UNIT_AURA", "UNIT_ABSORB_AMOUNT_CHANGED", "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_START",
             "ADDON_ACTION_BLOCKED", "ADDON_ACTION_FORBIDDEN",
             "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
             "SPELLS_CHANGED", "SPELL_UPDATE_COOLDOWN", "UPDATE_SHAPESHIFT_FORM", "UPDATE_SHAPESHIFT_FORMS", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED",
@@ -65,13 +72,15 @@ events:SetScript("OnEvent", function(_, event, ...)
             "PLAYER_ROLES_ASSIGNED", "ROLE_CHANGED_INFORM",
             "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "UNIT_DIED"}) do events:RegisterEvent(name) end
         for _, name in ipairs({"UPDATE_INVENTORY_DURABILITY", "PLAYER_EQUIPMENT_CHANGED", "PLAYER_TALENT_UPDATE"}) do events:RegisterEvent(name) end
-        local animationElapsed, auraElapsed, markingElapsed = 0, 0, 0
+        local animationElapsed, markingElapsed, encounterElapsed = 0, 0, 0
         events:SetScript("OnUpdate", function(_, elapsed)
             if not PTK.db.enabled then return end
-            animationElapsed, auraElapsed = animationElapsed + elapsed, auraElapsed + elapsed
+            animationElapsed = animationElapsed + elapsed
             markingElapsed = markingElapsed + elapsed
-            if markingElapsed >= 0.35 then PTK:AutoMarkTick(); markingElapsed = 0 end
-            if auraElapsed >= 0.2 then PTK:RefreshAuras(); PTK:UpdateEncounterCue(); auraElapsed = 0 end
+            encounterElapsed = encounterElapsed + elapsed
+            if markingElapsed >= 0.35 then PTK:UpdateMarkAdvice(); markingElapsed = 0 end
+            if not PTK.lastAuraRefresh or GetTime()-PTK.lastAuraRefresh>=PTK:AuraPollInterval() then PTK:RefreshAuras() end
+            if encounterElapsed>=.2 then PTK:UpdateEncounterCue();encounterElapsed=0 end
             if animationElapsed >= 1/60 then PTK:Render(); animationElapsed = 0 end
         end)
         PTK:UpdatePermissionAlert(); PTK:Render()
@@ -94,7 +103,7 @@ events:SetScript("OnEvent", function(_, event, ...)
     elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
         PTK:CancelCast(...)
         return
-    elseif event == "UNIT_AURA" then
+    elseif event == "UNIT_AURA" or event=="UNIT_ABSORB_AMOUNT_CHANGED" then
         local unit = ...
         if not PTK:Readable(unit) or unit ~= "player" then return end
     elseif event == "SPELLS_CHANGED" or event == "PLAYER_TALENT_UPDATE" then
@@ -104,6 +113,7 @@ events:SetScript("OnEvent", function(_, event, ...)
     elseif event == "PLAYER_REGEN_DISABLED" then
         PTK.preview = false; PTK:SyncSettings()
     elseif event == "PLAYER_REGEN_ENABLED" then
+        PTK:Position()
         PTK:ResetMarking()
         if PTK.spellKnowledgeDirty then PTK.spellKnowledgeDirty=nil;PTK:DiscoverSpells() end
         PTK:RecoverCooldowns();PTK:RefreshAuras()
@@ -121,5 +131,5 @@ events:SetScript("OnEvent", function(_, event, ...)
     -- Target/nameplate/marker changes must not invalidate the player's buff snapshot.
     if auraEvents[event] then PTK:RefreshAuras()
     elseif event == "UPDATE_INVENTORY_DURABILITY" or event == "PLAYER_EQUIPMENT_CHANGED" then PTK:RefreshShieldState() end
-    PTK:UpdateEncounterCue();PTK:RefreshUsedCooldowns(); PTK:Render()
+    PTK:UpdateMarkAdvice();PTK:UpdateEncounterCue();PTK:RefreshUsedCooldowns(); PTK:Render()
 end)

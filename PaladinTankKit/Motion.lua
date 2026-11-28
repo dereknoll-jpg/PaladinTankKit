@@ -154,6 +154,13 @@ function P:TickMarkEffects(now)
     end
     local flash = self.markFlash
     local t = flash and (now-flash.at)/0.5 or 1
+    if self.assistedMarking then
+        local glow=self.markAdvice and self.db.effects and .13 or 0
+        if glow>0 and not self.db.reducedMotion then glow=glow+.035*(1+math.sin(now*2.5)) end
+        self.markGlow:SetVertexColor(1,.78,.42)
+        self.markGlow:SetAlpha(glow);self.markGhost:SetAlpha(0)
+        return
+    end
     if not self.db.effects or self.db.reducedMotion or t >= 1 then
         self.markGlow:SetAlpha(0); self.markGhost:SetAlpha(0); return
     end

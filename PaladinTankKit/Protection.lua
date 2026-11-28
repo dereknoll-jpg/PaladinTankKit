@@ -83,7 +83,7 @@ function P:RefreshProtection()
     if type(api.GetAuraDataByIndex)=="function" then
         local complete,ended=true,false
         for i=1,255 do
-            local aura,ok=self:Call(api.GetAuraDataByIndex,"player",i,"HELPFUL")
+            local aura,ok=self:AuraAt(i,"HELPFUL")
             if not ok then complete=false;break end
             if aura==nil then ended=true;break end
             if type(aura)~="table" then complete=false;break end
@@ -97,11 +97,18 @@ function P:RefreshProtection()
     self.protection=self.protection or {}
     for _,def in ipairs(self.protectionDefs) do
         local old=self.protection[def.key]
-        if found[def.key] then self.protection[def.key]=found[def.key]
+        if found[def.key] then
+            local effect=found[def.key]
+            if def.key=="absorb" and effect.amount then
+                -- This is an observed baseline, never a health-derived maximum.
+                local same=old and math.abs(old.expires-effect.expires)<.15
+                effect.capacity=math.max(effect.amount,(same and old.capacity) or 0)
+            end
+            self.protection[def.key]=effect
         elseif (absent[def.key] and not uncertain[def.key]) or not old or old.expires<=now then self.protection[def.key]=nil
         else
             -- Retain only a previously observed deadline when reads become hidden.
-            self.protection[def.key]={active=true,expires=old.expires,duration=old.duration,estimated=true}
+            self.protection[def.key]={active=true,expires=old.expires,duration=old.duration,estimated=true,capacity=old.capacity}
         end
     end
     if UnitIsDeadOrGhost("player") then self.protection={} end
@@ -117,7 +124,7 @@ function P:RefreshPersonalCleanse()
     -- RAID asks the client for removable debuffs. Never infer dispellability from
     -- a Magic/Poison/Disease label on an unfiltered or secret aura.
     for i=1,255 do
-        local aura,ok=self:Call(api.GetAuraDataByIndex,"player",i,"HARMFUL|RAID")
+        local aura,ok=self:AuraAt(i,"HARMFUL|RAID")
         if not ok or aura==nil or type(aura)~="table" then return end
         local id=self:Field(aura,"spellId")
         local kind=self:Field(aura,"dispelName")

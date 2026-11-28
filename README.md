@@ -1,10 +1,10 @@
 # Paladin TankKit — WoW Forever
 
-**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.5**.
+**Mark. Track. Protect.** A compact Paladin tank companion for Forever Interface **16001**. Current build: **1.0.6**.
 
 ## Install
 
-Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.5.zip`. Generated archives and local installation backups are excluded from this repository.
+Download this repository, then copy its inner `PaladinTankKit` folder into the game's `Interface/AddOns` folder. The resulting path should be `Interface/AddOns/PaladinTankKit/PaladinTankKit.toc`. Restart WoW after adding the addon. Developers can run `npm ci` and `npm run package` to build `dist/PaladinTankKit-1.0.6.zip`. Generated archives and local installation backups are excluded from this repository.
 
 ![Paladin TankKit settings](release/media/gallery/01-overview.png)
 
@@ -12,7 +12,7 @@ Download this repository, then copy its inner `PaladinTankKit` folder into the g
 
 The AddOns list now uses the project's original gold shield-and-hammer emblem, supplied as a game texture in `Media/AddonIcon.tga`. The matching CurseForge upload is `Branding/PaladinTankKit-CurseForge-400.png`; the master and small-size previews are alongside it. `scripts/export-branding.ps1` regenerates the PNG exports and game texture from the master. Spell timers retain their actual ability artwork.
 
-Type `/ptk` for the redesigned settings: Overview, Ability timers, Dungeon marking and Appearance. Each tracked ability and each reminder has its own switch. Unlock the anchor to move it, then lock it. Bind **Mark Pull**, **Mark Skull**, **Cross** and **Clear** in WoW's Key Bindings under Paladin TankKit. Existing bindings are never changed. Settings are saved per character; other classes do not run the toolkit.
+Type `/ptk` for the redesigned settings: Overview, Ability timers, Protection, Dungeon marking and Appearance. Each tracked ability and each reminder has its own switch. Unlock the anchor to move it, then lock it. Bind the secure **Skull** and **X** actions in WoW's Key Bindings under Paladin TankKit, or use the native Raid Targeting bindings. Existing bindings are never changed. Settings are saved per character; other classes do not run the toolkit.
 
 ## Timers and motion
 
@@ -40,30 +40,36 @@ The HUD remains a **520 × 42 horizontal rail**. Timers move right to left, sepa
 Grouped Paladins assigned **Tank** (or legacy Main Tank) get larger blinking orange warnings for missing **Righteous Fury** and **Devotion Aura**. Selecting another aura does not satisfy the Devotion reminder. Another group Paladin can provide coverage only when their Devotion buff is on you and its spell rank is equal to or higher than your best learned Devotion rank. Lower-rank or out-of-range coverage does not suppress the warning. Unreadable rank/source/coverage data is treated as uncertain, not proof of a missing aura. Rank comparison covers the seven cataloged Devotion ranks; it does not compare another player's talent-enhanced armor amount.
 
 Inside a party dungeon, a confirmed missing tank buff plays one sound after a short debounce. Persistent absence does not repeat the sound; confirmed restoration rearms it. A readable gap does not rearm an already sounded episode. The Overview page has independent reminder switches and a Dungeon alert sound switch. Reduced Motion keeps a strong static warning. Buff alerts are suppressed while solo, unassigned, in another role, dead, mounted or previewing. Raid tank warnings remain visual. Equipped-shield durability reminders still work separately, including solo. Missing Seals and low mana do not produce alerts.
+
+The existing Iron Creed and Shieldsworn icons can gain an amber edge in their final two seconds, only with an observed deadline. **Protection expiration** and **Bulwark absorb fill** have independent switches on Protection. Reduced Motion keeps the edge steady and makes absorb changes immediate. The fill shows remaining readable absorb relative to the largest amount observed for that application; it is not a promise of the shield's original capacity. Secret values hide the fill immediately. Middle-click still hides the whole status icon.
+
+**Missing shield** on Overview adds a grouped, assigned-tank equip-shield reminder, separate from durability. It is suppressed while dead, mounted, previewing or when equipment information is uncertain, and follows the Reminders master switch.
+
 ## Marking
 
-**Client-dependent:** TankKit can only apply automatic markers when WoW permits addon marker writes and exposes the needed target information. Forever reports show that `SetRaidTarget` can be protected, including outside combat. Leader status cannot override a protected-function restriction. If the client blocks the action, TankKit stops retrying and directs you to WoW's native target-marker keybindings or target menu. Automatic marking and automatic death promotion are not guaranteed on a restricted client.
+TankKit uses **assisted marking** in Forever. The compact Skull and X buttons stay anchored to the left end of the bar, with a quiet **ASSIST** status. All marks require your click or keypress; selecting a target, mouseover, combat updates and deaths never apply or promote a marker automatically.
 
-The marker badge now reports verified state: `LEAD` requests leader/assistant; `WAIT` needs an eligible selection; `ARM` has selected an elite; `SET` awaits marker confirmation; `AUTO` has a confirmed visible automatic marker; `HOLD` lacks readable/visible data; `PAUSE` needs attention; `BLOCK` is a client refusal; `MAN` is manual-only. The tooltip explains the current state. `/ptk markstatus` prints the build, reason, auto setting, grouping, leadership, tank role and target eligibility without printing a unit GUID. Being assigned Tank is separate from TankKit's leader/assistant policy.
+- Click **Skull** to set Skull on your selected target. Shift-click Skull to set X.
+- Click **X** to set X. Ctrl-click either button to clear your selected target's mark.
+- Right-click either button for settings.
+- In WoW's **Key Bindings > Paladin TankKit**, assign the two secure actions. Modified key chords keep their fixed Skull/X action, independently of mouse gestures. Old TankKit Mark Pull/Skull/Cross/Clear bindings must be reassigned; existing keys are never changed automatically.
+- WoW's own **Key Bindings > Raid Targeting** actions are the native alternative and fallback. Group permissions are enforced by the game; tank role does not override them.
 
-Automatic marking starts only after you select a readable, living elite in a dungeon party. Mouseover can scout and remember observed casters, but cannot start a marking queue. Nameplates, nearby combat and party targets alone cannot start one either.
+The buttons use Blizzard's secure raidtarget actions with fixed attributes configured outside combat. Ordinary addon marker calls and automatic death promotion are disabled. If the client refuses even a secure action, the tooltip directs you to native bindings without a persistent warning across the HUD. Secure clicks need validation in the live Forever client; offline tests cannot prove client permission.
 
-Before combat, the selected elite can receive Skull. Other elites join when readable group engagement is confirmed. During a short opening priority check, a dangerous enemy or caster can take Skull. After that, Skull stays stable until confirmed death, with selected encounter-specific add exceptions. Cross promotes only after confirmed death; losing a nameplate is not a death notification.
+**Priority glow** offers subtle advice for your selected, readable dangerous elite or observed caster in a dungeon party. Mouseover can remember observed casters but cannot mark or select them. Existing markers, non-elites, bosses, raids, world bosses, unsupported/manual-only catalogs and unreadable identity suppress advice. Disable Priority glow in Dungeon marking; Effects Off hides it and Reduced Motion keeps it steady. It never changes the selected target or a secure action.
 
-Leader/assistant is TankKit's single-owner policy. A quiet alert requests leadership when missing. **Raids, world bosses and outdoor encounters remain manual.** Non-elites are never marked. Marking never changes your selected target.
+Manual secure actions follow native target-marker semantics: they can mark your selected target, including a non-elite, rather than attempting an unsafe combat-time elite filter. Elite-only filtering applies to priority advice. Manual raid and outdoor marking remains available. Movement, scale and HUD visibility changes involving the secure controls are deferred until combat ends.
 
-Manual pins, visible existing Skull/Cross marks and crowd-control markers are respected. Hidden/refused information or conflicting mark changes can pause the queue; `/ptk resume` retries while preserving visible marks. Readable identity is rechecked before applying each mark. Unverified reference entries do not contribute special priority scores.
-
-Click Skull to pin Skull, Shift-click for Cross, Ctrl-click to clear/pause, and right-click for settings. Explicit manual clicks use mouseover first, then your target. `/ptk pull` starts from your selected eligible target immediately. `WAIT` means select an elite, `AUTO` means an armed queue, `PAUSE` needs attention, and `MAN` means manual-only mode.
 ## Boss notes and coverage
 
 The catalog includes **28 dungeon instances, 193 selected boss notes and 58 named priority enemies**, covering the original eleven and seventeen additional instance catalogs. Wing groups such as Blackrock Spire, Dire Maul and Stratholme share instance catalogs. See [COVERAGE.md](PaladinTankKit/COVERAGE.md) for the generated inventory and [SOURCES.md](PaladinTankKit/SOURCES.md) for research and confidence.
 
 Target a supported boss to reveal **Notes**. Notes start collapsed and open as a **720 × 28 single-line ribbon**. Hover for the full note if it is clipped. Opening notes sends no chat. Click **Share** or use `/ptk share` to explicitly send a short party plan, limited to once per 15 seconds. `/ptk notes` prints the current plan privately.
 
-This is selected encounter coverage, not a complete dungeon journal. Some notes and mob identities use exact English names; full localization is not claimed. Sunken Temple's inherited tactics are explicitly labeled **Classic reference**. Several Shaper's Terrace entries have limited-confidence preparation notes and manual ordering. Unconfirmed inherited dungeon availability is recorded in the source ledger. Unsupported bosses receive no invented strategy; generic elite/caster marking still works in eligible dungeons.
+This is selected encounter coverage, not a complete dungeon journal. Some notes and mob identities use exact English names; full localization is not claimed. Sunken Temple's inherited tactics are explicitly labeled **Classic reference**. Several Shaper's Terrace entries have limited-confidence preparation notes and manual ordering. Unconfirmed inherited dungeon availability is recorded in the source ledger. Unsupported bosses receive no invented strategy; readable elite/caster priority advice remains available in eligible dungeons.
 
-The new private encounter cues use twelve refreshed plans across The Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns, checked against Wowhead **Forever 1.60.1** pages. They respond only to readable casts, engaged adds or observed health crossings, without predicted cast schedules or automatic chat. Disable **Dungeon marking > Encounter cues** to keep plans manual. Older catalog plans retain their existing confidence labels and cannot generate these automatic cues. See [the source ledger](PaladinTankKit/FOREVER_1_60_1.md) for precise coverage and limitations.
+The new private encounter cues use fourteen reviewed plans across The Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns, checked against Wowhead **Forever 1.60.1** pages. Six plans now name useful Paladin tools: Faldrim, Durgen, Witherfang, The Baron, Viktor the Vile and Rath'mael. Personal Leech Poison cues reuse the existing removable-debuff reminder; they do not scan party debuffs. They respond only to readable casts, engaged adds or observed health crossings, without predicted cast schedules or automatic chat. Disable **Dungeon marking > Encounter cues** to keep plans manual. Older catalog plans retain their existing confidence labels and cannot generate these automatic cues. See [the source ledger](PaladinTankKit/FOREVER_1_60_1.md) for precise coverage and limitations.
 
 ## Commands
 
@@ -71,9 +77,9 @@ The new private encounter cues use twelve refreshed plans across The Deadmines, 
 | --- | --- |
 | `/ptk` | Settings |
 | `/ptk on` / `/ptk off` | Enable / disable tank mode |
-| `/ptk auto` | Toggle dungeon automatic marking |
-| `/ptk pull` | Seed marking with current elite target |
-| `/ptk resume` | Reset paused queue |
+| `/ptk auto` | Toggle priority advice (legacy command alias) |
+| `/ptk pull` | Explain assisted marking; does not mark |
+| `/ptk resume` | Clear remembered scouting; keep existing marks |
 | `/ptk notes` | Private boss plan |
 | `/ptk share` | Share current plan to party |
 | `/ptk unlock` / `/ptk lock` | Move / lock display |
@@ -82,6 +88,8 @@ The new private encounter cues use twelve refreshed plans across The Deadmines, 
 | `/ptk ground 8` | Ground estimate, 4–20 seconds |
 
 ## Development and validation
+
+Aura consumers share indexed reads within each refresh; snapshots never persist across events. UNIT_AURA and player absorb-change events refresh immediately. Fallback polling is 1 second idle / 0.5 seconds in combat, temporarily 0.2 seconds for Seal and Holy Shield handoffs. Shield inventory fallback checks are limited to once every 2 seconds, with immediate equipment/durability event checks. Animation pacing remains independent.
 
 `npm test` checks Lua 5.1 syntax, loading, bindings, non-Paladin isolation, marking rules, restricted-data handling, catalogs, timer tracking, geometry, animation state and all nine shipped textures using a mocked client. `npm run media` regenerates original TGA light textures; `npm run preview:skin` creates a browser material check using those textures, with optional local example icon references. The browser check uses representative WoW artwork and is not a live-client capture. Reference artwork is not shipped with the addon. `node scripts/catalog-report.cjs` regenerates the coverage inventory. `npm run package` builds the versioned ZIP from the TOC. Old versioned archives remain available.
 

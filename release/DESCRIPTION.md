@@ -1,61 +1,71 @@
-# Paladin TankKit 1.0.5
+# Paladin TankKit
 
 **Mark. Track. Protect.**
 
-Paladin TankKit is a clean, minimalist tanking companion built specifically for **Paladins in World of Warcraft: Forever**. Keep your kill order, important timers, and quick boss guidance close at hand with a compact HUD, subtle holy light effects, and smooth animations.
+Paladin TankKit is a clean, minimalist tanking companion built specifically for **Paladins in World of Warcraft: Forever**. Keep your important timers, active protection, target markers and quick encounter guidance together in one compact HUD, with warm light effects and smooth animations.
 
-## Smart Dungeon Marking
+## Assisted Skull and X marking
 
-**Automatic marking depends on the client allowing addon marker writes.** If WoW blocks the action or hides required target data, TankKit shows the reason. A protected marking refusal cannot be fixed by changing group leader; use WoW's own target-marker keybindings or target menu in that case. Automatic marking and promotion are not guaranteed on a restricted client.
+Compact **Skull and X buttons stay anchored to the bar**, with a quiet **ASSIST** status. Select your target, then apply the mark yourself through Blizzard's secure marker actions.
 
-**You choose the pull.** Automatic marking begins when you select a living elite in a dungeon party—even before combat. Mouseover can scout enemies, but it never starts marking by itself.
+- Click Skull or X to set that marker on your selected target.
+- Shift-click Skull for X; Ctrl-click either button to clear the selected target's mark.
+- Right-click either button to open settings.
+- Assign secure Skull/X actions under **Paladin TankKit** in WoW's Key Bindings, or use the game's native **Raid Targeting** bindings.
 
-- Assigns Skull and Cross to eligible elites, with opening priority for known dangerous enemies and observed casters.
-- Promotes Cross to Skull after Skull's confirmed death.
-- Respects manual kill marks and crowd-control markers.
-- Never marks non-elites or changes your selected target.
-- Shows a quiet reminder when leader or assistant permission is missing.
+An optional **priority glow** highlights your selected, readable dangerous elite or observed caster in supported dungeon parties. It respects existing markers and stays off for non-elites, raids and world bosses. Mouseover can scout casters, but never selects or marks enemies.
 
-Other enemies join the queue as your party engages them. After the opening priority check, Skull stays stable until confirmed death, with selected boss-add exceptions. **Automatic marking is limited to dungeon parties. Raids, world bosses, and outdoor encounters remain manual.**
+**Every mark requires your click or keypress.** There is no automatic marking or automatic X-to-Skull promotion. Manual controls follow native targeting rules and can mark non-elites too; the elite filter applies to priority advice. Group permissions and client restrictions still apply. Native Raid Targeting bindings remain the fallback.
 
 ## Important timers, one clean timeline
 
-Abilities move from right to left as their timers run down. Unused abilities stay hidden, and each tracker can be switched on or off.
+The sliding rail keeps five independent trackers:
 
-**Middle-click any ability timer, protection badge or cleanse reminder to hide it.** Restore individual items in `/ptk` > **Ability timers** or **Protection**, click **Restore all**, or type `/ptk restore`. Choices are saved per character.
+- **Active Seal:** follows your current Seal's buff expiration. Judgement and hit procs do not restart it.
+- **Consecration:** tracks the ground-effect duration, with remaining cooldown shown separately when applicable.
+- **Hammer of Justice:** tracks its cooldown after use.
+- **Holy Shield:** tracks its active protection duration, including readable early removal.
+- **Templar's Bulwark:** tracks its cooldown when learned and used.
 
-- **Seals:** tracks your active Seal using Blizzard's buff expiration, with a successful-cast estimate when combat hides it. Judgement and melee hits do not restart its timer.
-- **Consecration:** uses a readable player buff or ground-effect timer when available, with a cast-based estimate and cooldown recovery as fallbacks.
-- **Hammer of Justice:** cooldown after use.
-- **Holy Shield:** actual buff duration, with a bounded cast estimate when timing is hidden.
-- **Templar's Bulwark:** cooldown when talented and used.
+Inactive abilities stay hidden. Readable Blizzard buff and cooldown information takes priority. When combat hides timing data, supported trackers can retain a bounded remembered deadline or confirmed-cast estimate, marked **~**. Expired or untimed effects do not leave question-mark placeholders on the rail. Ability artwork stays full-colour.
 
-A compact, fixed row above the timeline shows **Iron Creed**, **Shieldsworn spell block**, **Bulwark's active shield**, and **Forbearance** only while active. The existing sliding rail keeps its five trackers. Bulwark's readable remaining absorb appears on hover. Optional Forbearance awareness flags its cooldown and explains affected learned self-protection abilities. Individual switches, middle-click hiding and Reduced Motion keep the display under your control.
+## Protection at a glance
 
-Readable cooldowns already in progress can restore tracking after reloading, zoning, or death. Confirmed cooldown completion briefly lights up before clearing.
+Small fixed icons above the bar show **Iron Creed**, **Shieldsworn spell block**, **Bulwark's active shield** and **Forbearance** while active, without adding more sliding timers.
 
-## Compact boss notes
+- Optional amber edges emphasize the final two seconds of observed Iron Creed and spell-block protection.
+- An optional Bulwark fill shows readable absorb remaining relative to the largest amount observed for that application. It hides when values are concealed and never guesses shield strength from health.
+- Forbearance awareness flags Bulwark's cooldown while locked out and explains affected learned self-protection abilities on hover.
+- A silent personal **Cleanse/Purify reminder** appears for readable, client-filtered removable debuffs matching your learned spell.
 
-Includes **193 selected boss notes across 28 dungeon instance catalogs**, plus **58 named priority enemies**. Check a quick kill order and encounter tips in a slim, single-line ribbon, then hover for the full note. Guidance stays private unless you choose to share it with your party.
+These features have individual controls. Reduced Motion keeps expiration lighting steady and makes absorb-fill changes immediate.
 
-Coverage is selected rather than a complete dungeon journal. Reference-based or limited-confidence guidance is labeled, and unverified entries do not receive special automatic priority scores. Some encounter identification currently relies on English names.
+## Useful reminders for Paladin tanks
 
-**New private encounter cues:** twelve refreshed plans across Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns use Wowhead Forever 1.60.1 sources. Observed casts, engaged adds and selected health crossings can bring a relevant tip into the existing ribbon. These cues never auto-post to chat, and have a separate switch. Older reference plans cannot trigger them.
+Grouped Paladins assigned Tank receive a prominent warning when **Righteous Fury** or **Devotion Aura** is confirmed missing. Another group Paladin's Devotion counts when its buff reaches you at an equal or higher spell rank. Unknown coverage does not trigger a guessed loss warning.
 
-## Quiet, useful reminders
+Party dungeons can play one debounced alert sound per missing tank-buff episode. Audio is independently configurable.
 
-An optional **personal cleanse reminder** appears above the rail for a readable debuff the client identifies as removable with your learned Cleanse or Purify. It stays silent, respects the Reminders master switch, and can be disabled or middle-clicked away.
+An optional **missing-shield reminder** warns assigned group tanks to equip a shield. Separate durability warnings cover an equipped shield at **20% durability or below**, including a broken-shield warning. No missing-Seal or low-mana alerts.
 
-While grouped and assigned the tank role, missing **Righteous Fury** or **Devotion Aura** produces a larger blinking warning. Devotion is considered covered when another group Paladin's aura is actually reaching you at an equal or higher spell rank than your best learned rank. In party dungeons, a confirmed missing buff plays one alert sound per episode; audio can be muted separately. Reduced Motion keeps the warning static. Unknown aura rank or source does not trigger a guessed loss warning. Optional equipped-shield warnings still alert at **20% durability or below**, with a clear warning when broken. Missing Seals and low mana do not trigger alerts.
+## Compact boss notes and Paladin guidance
 
-## Minimalist by design
+Browse **193 selected boss notes across 28 dungeon instance catalogs** in a slim, single-line ribbon. Hover for details, print a plan privately, or explicitly share it with your party. Notes never auto-post to chat.
 
-Original spell artwork, softly rounded icons, warm lighting, feathered trails, and smooth transitions keep the HUD clear and readable. Version 1.0 includes the shield-and-hammer logo and a refreshed settings panel with dedicated pages for timers, dungeon marking, and appearance.
+Fourteen reviewed encounter plans across Deadmines, Hall of Thanes, Ruins of Lordaeron and Wailing Caverns use **Wowhead Forever 1.60.1** sources. Six plans highlight Paladin tools, including Hammer of Justice opportunities, Purify/Cleanse guidance and curse-dispel limitations.
 
-Adjust the scale, move and lock the HUD, fade it while idle, or enable **Reduced Motion**. Built-in Preview mode demonstrates the timers and sample boss notes outside combat without marking enemies or sending party chat.
+Optional private cues respond to readable casts, engaged adds, selected health crossings and supported personal Leech Poison reminders. They do not predict hidden casts or use retail encounter data. Coverage is selected, rather than a complete dungeon journal; inherited reference or limited-confidence notes remain labeled. Some encounter matching relies on English names.
 
-**Type `/ptk` to open settings.** Find Mark Pull, Skull, Cross, and Clear bindings under **Paladin TankKit** in WoW's Key Bindings.
+## Clean, configurable and lightweight
 
-### Timing and compatibility
+Warm lighting, soft icon edges and fluid transitions keep the interface readable. Background aura readers share snapshots, fallback scans slow between events, and animations update independently.
 
-Built for **WoW Forever**. TankKit uses information the client exposes to addons; hidden data can limit timer tracking or automatic marking. **`~` indicates estimated timing.** Successful casts can keep independent countdowns while combat hides live data; real player buff/cooldown timers take priority when readable. Seal estimates use that Seal's previously observed duration, or a 30-second reference fallback; Holy Shield uses its observed duration or a 10-second fallback. Expired or untimed effects do not leave question-mark placeholders. Hidden early buff removal and cooldown resets can make estimates stale; estimates do not prove readiness. Consecration's ground duration is an adjustable estimate; use `/ptk ground 8` to set it to eight seconds.
+- **Middle-click any timer, protection badge or cleanse reminder to hide it.**
+- Restore individual items in **/ptk > Ability timers** or **Protection**, use **Restore all**, or type **/ptk restore**.
+- Adjust scale, move and lock the HUD, enable idle fading, turn effects off, or use **Reduced Motion**.
+- Preview the HUD outside combat with **/ptk preview**.
+- Preferences are saved per character. Protected HUD movement, scale and visibility changes wait until combat ends.
+
+**Type /ptk to open settings.** Built for the Forever 1.60.1 client, Interface 16001.
+
+**Updating from 1.0.5:** reassign old TankKit marking bindings to the new secure Skull/X actions. Existing keys are never overwritten automatically.

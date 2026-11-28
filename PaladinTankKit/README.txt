@@ -1,4 +1,4 @@
-Paladin TankKit 1.0.5 - WoW Forever (Interface 16001)
+Paladin TankKit 1.0.6 - WoW Forever (Interface 16001)
 Mark. Track. Protect.
 
 /ptk opens settings. /ptk version prints the currently loaded build.
@@ -8,6 +8,12 @@ Restore items in /ptk > Ability timers or Protection; Restore all or /ptk restor
 enables all again. The new status icons stay fixed above the five-icon rail.
 Hiding is saved per character and does not stop tracking or cancel a buff.
 
+PROTECTION: Optional final-two-second amber edges emphasize observed Iron Creed
+and Shieldsworn expiration. Bulwark can show a soft readable-absorb fill relative
+to the largest amount observed for that application, never a health estimate.
+Hidden values remove the fill. Both visuals have Protection switches.
+Missing shield has a separate Overview switch for assigned group tanks only.
+
 PROTECTION: Iron Creed, Shieldsworn spell block and active Templar's Bulwark use
 observed player buffs; hidden reads retain only an observed bounded deadline (~).
 Bulwark's remaining absorb appears on hover only when readable. Forbearance moves
@@ -15,24 +21,24 @@ above the rail and can flag Bulwark as locked, with affected learned spells on h
 Personal cleanse is an optional, silent prompt for a client-filtered removable
 debuff matching your learned Cleanse/Purify. Each new feature has its own switch.
 
-ENCOUNTER CUES: Twelve refreshed plans in four dungeons use only Wowhead Forever
+ENCOUNTER CUES: Fourteen reviewed plans in four dungeons use only Wowhead Forever
 1.60.1 sources. Relevant observed casts, engaged adds or health crossings can show
 a private cue in the existing ribbon. Disable Encounter cues for manual plans only.
 Older reference plans cannot trigger automatic cues. See FOREVER_1_60_1.md.
 
-Marking is client-dependent. Forever can protect addon SetRaidTarget calls even
-outside combat; leadership cannot override this. When blocked, use WoW's native
-target-marker bindings or target menu. No automatic-marking bypass is claimed.
-LEAD needs leader/assist (tank role is separate); ARM is armed; SET awaits client
-confirmation; AUTO is a confirmed visible automatic marker; HOLD lacks readable
-data; BLOCK is a native refusal; PAUSE needs attention; MAN is manual-only.
-
-MARKING: Select a living elite in a dungeon party to begin. Mouseover scouts only.
-Before combat only the selected elite is seeded; other elites need party engagement.
-Dangerous enemies/casters can take opening priority; then Skull stays stable until
-confirmed death, with selected boss-add exceptions. Cross promotes after death.
-Requires leader/assistant. Raids, world bosses and outdoors remain manual.
-Non-elites are never marked. Manual pins and crowd-control marks are respected.
+ASSISTED MARKING: Click the anchored Skull or X to mark your selected target.
+Shift-click Skull for X; Ctrl-click either to clear; right-click for settings.
+Bind secure Skull/X under WoW Key Bindings > Paladin TankKit, or use the native
+Raid Targeting bindings. Reassign old TankKit bindings; keys are not overwritten.
+Every mark needs your input. No automatic marks or death promotion.
+Group permissions still apply. ASSIST stays quiet; fallback help lives on hover.
+Priority glow advises on selected, readable dangerous elites/casters in dungeons.
+Existing marks, non-elites, raids and world bosses suppress advice. Disable it in
+Dungeon marking. Reduced Motion keeps it steady; Effects Off hides the glow.
+Manual secure buttons use native semantics and can mark non-elites too; the
+elite filter applies only to advice. They always use target, never mouseover.
+HUD movement, scale and visibility changes defer while in combat.
+Live secure-click behavior still needs testing on the Forever client.
 
 TIMERS: Active Seal, Consecration, Hammer of Justice, Holy Shield and talented
 Templar's Bulwark each own an independent deadline on one horizontal rail.
@@ -66,3 +72,8 @@ Notes are a compact one-line ribbon; hover for full text. Sharing is explicit.
 Reference/limited-confidence guidance is labeled. Some identities use English names.
 /ptk preview shows labeled samples outside combat and never marks or sends chat.
 Reduced Motion and Effects Off are available. See SOURCES.md and COVERAGE.md.
+
+Background scans share indexed aura reads within each refresh. Aura and absorb
+events refresh immediately; fallback is 1 second idle / .5 seconds in combat,
+with .2-second Seal/Holy Shield handoffs. Equipment events bypass shield polling
+limits. Animation updates remain smooth and independent.

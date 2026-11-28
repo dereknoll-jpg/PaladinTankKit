@@ -54,7 +54,7 @@ function hooksecurefunc(name,callback)
     local original=_G[name]
     _G[name]=function(...) original(...);callback(...) end
 end
-EQUIPPED_OFFHAND, ITEM_EQUIP_LOC, ITEM_DURABILITY = nil, "INVTYPE_SHIELD", {100,100}
+EQUIPPED_OFFHAND, ITEM_EQUIP_LOC, ITEM_DURABILITY = 90000, "INVTYPE_SHIELD", {100,100}
 function GetInventoryItemID(_,slot) assert(slot==17); return EQUIPPED_OFFHAND end
 function GetInventoryItemDurability(slot)
     assert(slot==17); if DURABILITY_ERROR then error("unavailable") end
@@ -75,7 +75,12 @@ function methods:SetScript(name, value) self.scripts[name] = value end
 function methods:RegisterEvent(name) self.events[name] = true end
 function methods:UnregisterEvent(name) self.events[name] = nil end
 function methods:SetText(value) assert(not issecretvalue(value)); self.text = value end
-function methods:SetShown(value) self.shown = not not value end
+local function protectedMutation(frame)
+    assert(not (COMBAT and frame.protected),"Protected frame mutation in combat")
+end
+function methods:SetAttribute(key,value) protectedMutation(self);self.attributes[key]=value end
+function methods:GetAttribute(key) return self.attributes[key] end
+function methods:SetShown(value) protectedMutation(self);self.shown = not not value end
 function methods:Show() self.shown = true end
 function methods:Hide() self.shown = false end
 function methods:IsShown() return self.shown end
@@ -84,8 +89,8 @@ function methods:SetDesaturated(value) self.desaturated = value end
 function methods:SetChecked(value) self.checked = value end
 function methods:GetChecked() return self.checked end
 function methods:EnableMouse(value) self.mouse = value end
-function methods:SetPoint(...) self.point = {...} end
-function methods:SetScale(value) self.scale = value end
+function methods:SetPoint(...) protectedMutation(self);self.point = {...} end
+function methods:SetScale(value) protectedMutation(self);self.scale = value end
 function methods:SetTexture(value) self.texture = value end
 function methods:AddMaskTexture(value) self.mask = value end
 function methods:SetSize(w, h) self.width, self.height = w, h end
@@ -100,14 +105,21 @@ local noop = {"ClearAllPoints", "SetAllPoints", "SetColorTexture", "SetTexCoord"
     "SetBackdropColor", "SetBackdropBorderColor", "SetOwner", "AddLine"}
 for _, name in ipairs(noop) do methods[name] = function() end end
 local function make(name)
-    local f = setmetatable({scripts = {}, events = {}, shown = true}, {__index = methods})
+    local f = setmetatable({scripts = {}, events = {}, attributes={}, shown = true}, {__index = methods})
     if name then _G[name] = f end
     return f
 end
 function methods:CreateTexture() return make() end
 function methods:CreateMaskTexture() return make() end
 function methods:CreateFontString() return make() end
-function CreateFrame(_, name) local f = make(name); FRAMES[#FRAMES + 1] = f; return f end
+function CreateFrame(_, name,parent,template)
+    local f=make(name);f.parent=parent;f.template=template
+    if template and template:find("SecureActionButtonTemplate",1,true) then
+        local ancestor=f
+        while ancestor do ancestor.protected=true;ancestor=ancestor.parent end
+    end
+    FRAMES[#FRAMES+1]=f;return f
+end
 UIParent, GameTooltip = make(), make()
 STANDARD_TEXT_FONT = "Fonts\\FRIZQT__.TTF"
 UISpecialFrames, SlashCmdList = {}, {}

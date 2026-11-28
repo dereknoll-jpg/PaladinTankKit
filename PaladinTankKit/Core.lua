@@ -1,6 +1,8 @@
 local _, PTK = ...
 
-PTK.version = "1.0.5"
+PTK.version = "1.0.6"
+-- Forever marking is player-triggered. The retained queue is never armed in this mode.
+PTK.assistedMarking = true
 PTK.timerKeys = {"seal", "ground", "justice", "holy", "bulwark"}
 PTK.defaults = { enabled = true, locked = true, scale = 1, horizon = 30,
     warnings = true, showForbearance = true, idleFade = true, groundDuration = 8,
@@ -8,7 +10,8 @@ PTK.defaults = { enabled = true, locked = true, scale = 1, horizon = 30,
     warnFury=true, warnAura=true, warnShield=true, warningSounds=true,
     trackSeal=true, trackGround=true, trackJustice=true, trackHoly=true, trackBulwark=true,
     showIronCreed=true, showSpellBlock=true, showBulwarkActive=true, forbearanceAware=true,
-    warnCleanse=true, encounterCues=true }
+    warnCleanse=true, encounterCues=true, protectionExpiryCue=true, bulwarkFill=true,
+    warnMissingShield=true }
 PTK.definitions = {
     seal = { label = "Seal", ids = {
         20154, 21084, 20287, 20288, 20289, 20290, 20291, 20292, 20293,
@@ -119,6 +122,9 @@ function PTK:Cooldown(key)
 end
 
 function PTK:Mark(icon)
+    if self.assistedMarking then
+        self:Print("Use the Skull/X buttons or WoW Key Bindings > Raid Targeting. Slash commands cannot apply secure marks."); return
+    end
     if not self.isPaladin or not self.db or not self.db.enabled then return end
     if icon ~= 0 and icon ~= 7 and icon ~= 8 then return end
     local issue = self:MarkPermissionIssue()
@@ -166,6 +172,7 @@ end
 function PTK:Warnings()
     if not self.db.warnings or UnitIsDeadOrGhost("player") or IsMounted() then return "" end
     local shield = self.db.warnShield and self.shieldWarning or nil
+    if self:MissingShield() then shield="Equip shield" end
     if not IsInGroup() and self:Call(UnitCanAttack, "player", "target") ~= true then return shield or "" end
     local missing = {}
     local status=self:TankBuffStatus()

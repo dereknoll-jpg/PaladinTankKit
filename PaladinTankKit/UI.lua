@@ -67,6 +67,8 @@ function PTK:RestoreTimers()
 end
 
 function PTK:Position()
+    if InCombatLockdown() then self.pendingPosition=true; return end
+    self.pendingPosition=nil
     local f, p = self.frame, self.db.position
     f:ClearAllPoints()
     if type(p) == "table" and self:Number(p.x) and self:Number(p.y) then
@@ -84,8 +86,9 @@ function PTK:CreateUI()
     local anchor = CreateFrame("Button", nil, f)
     self.anchor = anchor
     anchor:SetAllPoints(); anchor:RegisterForDrag("LeftButton")
-    anchor:SetScript("OnDragStart", function() if not self.db.locked then f:StartMoving() end end)
+    anchor:SetScript("OnDragStart", function() if not self.db.locked and not InCombatLockdown() then f:StartMoving() end end)
     anchor:SetScript("OnDragStop", function()
+        if InCombatLockdown() then return end
         f:StopMovingOrSizing()
         local x, y = f:GetCenter()
         local px, py = UIParent:GetCenter()
@@ -98,25 +101,46 @@ function PTK:CreateUI()
     self.anchorLabel:SetPoint("TOP", 0, 26); self.anchorLabel:SetText("PALADIN TANKKIT  /  DRAG TO MOVE")
     self.anchorBG = anchor:CreateTexture(nil, "BACKGROUND")
     self.anchorBG:SetAllPoints(); self.anchorBG:SetColorTexture(0.06, 0.065, 0.075, 0.82)
-    local skull = CreateFrame("Button", nil, f)
+    -- Fixed secure actions are set once out of combat, never from advice or target events.
+    local skull = CreateFrame("Button", "PaladinTankKitSkull", f, "SecureActionButtonTemplate")
     self.skull = skull
-    skull:SetSize(24, 24); skull:SetPoint("TOPLEFT", 0, -5)
+    skull:SetSize(20, 20); skull:SetPoint("TOPLEFT", 0, -7)
     skull:SetFrameLevel(f:GetFrameLevel() + 3)
     skull.icon = skull:CreateTexture(nil, "ARTWORK"); skull.icon:SetAllPoints()
     skull.icon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_8")
-    skull:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    skull:SetScript("OnClick", function(_, button)
-        if button == "RightButton" then self:ToggleSettings()
-        elseif IsControlKeyDown() then self:Mark(0)
-        elseif IsShiftKeyDown() then self:Mark(7)
-        else self:Mark(8) end
-    end)
+    local function secureMarker(button,marker)
+        button:RegisterForClicks("AnyDown","AnyUp")
+        button:SetAttribute("useOnKeyDown",false)
+        button:SetAttribute("unit","target")
+        button:SetAttribute("*type1","raidtarget")
+        button:SetAttribute("*marker1",marker)
+        button:SetAttribute("*action1","set")
+        button:SetAttribute("ctrl-action1","clear")
+        -- A separate virtual button keeps modified key chords (e.g. Shift-S)
+        -- from inheriting the mouse-only Shift-X / Ctrl-clear gestures.
+        button:SetAttribute("*type-Mark","raidtarget")
+        button:SetAttribute("*marker-Mark",marker)
+        button:SetAttribute("*action-Mark","set")
+        button:SetScript("PostClick",function(_,mouseButton,down)
+            if mouseButton=="RightButton" and not down then self:ToggleSettings() end
+        end)
+    end
+    secureMarker(skull,8)
+    skull:SetAttribute("shift-marker1",7)
+    local cross=CreateFrame("Button","PaladinTankKitCross",f,"SecureActionButtonTemplate")
+    self.cross=cross
+    cross:SetSize(15,15);cross:SetPoint("TOPLEFT",23,-10)
+    cross:SetFrameLevel(f:GetFrameLevel()+3)
+    cross.icon=cross:CreateTexture(nil,"ARTWORK");cross.icon:SetAllPoints()
+    cross.icon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_7")
+    secureMarker(cross,7)
     tooltip(skull,"Paladin TankKit",function()
         local status,reason=self:MarkingStatus()
-        return status..": "..reason.."\n\nElites only. Click: pin Skull\nShift-click: pin Cross\nCtrl-click: clear/pause\nRight-click: settings\nMouseover scouts; only a selected elite starts auto marks.\nTank role is separate from leader/assistant permission.\n/ptk markstatus prints the current blocker."
+        return status..": "..reason.."\n\n"..(self.markAdvice or "Priority glow: selected dangerous elites/casters only.").."\nManual actions mark your selected target, like native bindings; they cannot enforce elite-only filtering in combat.\nRight-click: settings. No automatic marks or death promotion."..(self.secureMarkBlocked and "\nClient blocked a secure mark; use WoW's native Raid Targeting bindings." or "")
     end)
+    tooltip(cross,"Cross / X","Click: set X on your selected target. Ctrl-click: clear. Right-click: settings.\nManual action, including in raids or outdoors; group permissions still apply.\nBind Skull/X under Paladin TankKit or use WoW's native Raid Targeting bindings.")
     self.markStatus = text(f, 8, gold[1], gold[2], gold[3])
-    self.markStatus:SetPoint("TOPLEFT", 0, -32)
+    self.markStatus:SetPoint("TOPLEFT", -1, -32)
     self:CreateMarkEffects()
     local line = f:CreateTexture(nil, "BACKGROUND")
     line:SetPoint("TOPLEFT", self.layout.start, self.layout.y); line:SetSize(self.layout.length, 1)
@@ -172,7 +196,7 @@ end
 function PTK:Render()
     if not self.frame then return end
     local enabled = self.isPaladin and self.db.enabled
-    self.frame:SetShown(enabled)
+    if not InCombatLockdown() then self.frame:SetShown(enabled) end
     if not enabled then self.buffAlertEpisodes=nil;return end
     local now = GetTime()
     if not self.lastCooldownRefresh or now-self.lastCooldownRefresh >= 0.1 then
@@ -185,8 +209,8 @@ function PTK:Render()
     local bulwark, bulwarkState = self:UsedTimerView("bulwark",now)
     local groundCooldown, groundState = self:UsedTimerView("ground",now)
     local warning = self:Warnings()
-    local markingIssue = self:MarkPermissionIssue() or self.markingBlocked or (self.marking and self.marking.paused)
-    if self.markingBlocked then markingIssue="WoW blocked addon marking; use native target-marker bindings." end
+    local markingIssue = not self.assistedMarking and (self:MarkPermissionIssue() or self.markingBlocked or (self.marking and self.marking.paused))
+    if not self.assistedMarking and self.markingBlocked then markingIssue="WoW blocked addon marking; use native target-marker bindings." end
     if markingIssue then warning = warning ~= "" and (warning .. " / " .. markingIssue) or markingIssue end
     if ground and ground.expires <= now then ground = nil; self.ground = nil end
     if self.preview then
@@ -251,7 +275,7 @@ end
 
 function PTK:SetScale(value)
     self.db.scale = math.max(0.75, math.min(1.5, value))
-    self.frame:SetScale(self.db.scale); self:SyncSettings()
+    self:Position(); self:SyncSettings()
 end
 
 function PTK:TogglePreview()

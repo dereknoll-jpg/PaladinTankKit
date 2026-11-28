@@ -73,6 +73,6 @@ for _,guides in pairs(p.foreverGuides)do for _,e in pairs(guides)do
     check(#p:BossNoteMessage(e)<=255,"Every new static plan fits explicit party sharing")
     count=count+1
 end end
-check(count==12,"New researched coverage has twelve plans across four dungeons")
+check(count==14,"Reviewed coverage has fourteen plans across four dungeons")
 check(#MARKS==0 and #SENT_CHAT==0,"Encounter cues neither mark enemies nor auto-share")
 print("PASS: "..n.." Forever encounter-source, private cue and version-scope checks.")

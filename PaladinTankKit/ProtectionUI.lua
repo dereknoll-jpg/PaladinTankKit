@@ -28,11 +28,21 @@ function P:CreateProtectionUI(makeTile,tooltip,makeText)
             local effect=self.protection and self.protection[def.key]
             local detail=def.key=="iron" and "Holy Strike's Iron Creed protection is active."
                 or (def.key=="block" and "Shieldsworn's spell-block window is active." or "Templar's Bulwark absorb shield is active.")
-            if effect and effect.amount then detail=detail.."\nRemaining absorb: "..math.floor(effect.amount) end
+            if effect and effect.amount then
+                detail=detail.."\nRemaining absorb: "..math.floor(effect.amount)
+                if effect.capacity then detail=detail.."\nFill is relative to the largest absorb observed for this application, not a guaranteed original maximum." end
+            end
             return detail.."\nUses the observed player buff, including early removal.\n~ means the last observed deadline is temporarily remembered."
         end)
         tile:Hide();tile.pin:Hide()
         self.statusTiles[def.key]=tile
+        if def.key=="absorb" then
+            tile.absorbFill=tile:CreateTexture(nil,"ARTWORK",nil,2)
+            tile.absorbFill:SetTexture("Interface\\AddOns\\PaladinTankKit\\Media\\IconFace")
+            tile.absorbFill:SetBlendMode("ADD");tile.absorbFill:SetVertexColor(.45,.85,.62,.28)
+            tile.absorbFill:SetPoint("BOTTOMLEFT",tile,"BOTTOMLEFT",1,1)
+            tile.absorbFill:Hide()
+        end
     end
     self.bulwarkTile.lock=makeText(self.bulwarkTile,10,1,.65,.28)
     self.bulwarkTile.lock:SetPoint("TOPRIGHT",4,4);self.bulwarkTile.lock:SetText("!");self.bulwarkTile.lock:Hide()
@@ -48,6 +58,7 @@ function P:RenderProtection(now,fb,suppressed)
         if self.preview then
             local elapsed=(now-self.previewStart)%12
             aura=elapsed<8 and {active=true,expires=now+8-elapsed,duration=8} or nil
+            if def.key=="absorb" and aura then aura.amount=math.max(0,1-elapsed/8);aura.capacity=1 end
             if def.key=="forbearance" then aura=fb end
             if def.key=="cleanse" then aura=elapsed>=8 and {active=true} or nil end
         end
@@ -71,14 +82,30 @@ function P:RenderProtection(now,fb,suppressed)
         if def.key=="block" then r,g,b=.61,.81,1 end
         if def.key=="absorb" then r,g,b=.74,.91,.69 end
         if def.key=="forbearance" or def.key=="cleanse" then r,g,b=1,.67,.35 end
+        tile.expiring=not not (visible and self.db.protectionExpiryCue and self.db.effects
+            and (def.key=="iron" or def.key=="block") and not aura.estimated and aura.expires-now<=2)
+        if tile.expiring then r,g,b=1,.56,.16 end
         tile.halo:SetVertexColor(r,g,b);tile.halo:SetAlpha(self.db.effects and visible and (.13+glow+arrival*.12) or 0)
-        tile.rim:SetVertexColor(r,g,b);tile.rim:SetAlpha(.78)
+        tile.rim:SetVertexColor(r,g,b);tile.rim:SetAlpha(tile.expiring and 1 or .78)
         tile.faceLight:SetVertexColor(r,g,b);tile.faceLight:SetAlpha(self.db.effects and .13 or 0)
         tile.shade:SetAlpha(.36);tile.wash:SetAlpha(0);tile.trail:SetAlpha(0);tile.pin:Hide()
         tile.sweep:SetAlpha(arrival>0 and math.sin((1-arrival)*math.pi)*.35 or 0)
         tile.icon:SetDesaturated(false);tile.icon:SetAlpha(1)
         tile:SetScale(1+arrival*.045)
         tile.count:SetText(visible and aura.expires and self:FormatTime(aura.expires-now,aura.estimated) or "")
+        if tile.absorbFill then
+            local show=visible and self.db.bulwarkFill and not aura.estimated and aura.amount and aura.capacity and aura.capacity>0
+            if show then
+                local ratio=math.max(0,math.min(1,aura.amount/aura.capacity))
+                local smooth=self.db.effects and not self.db.reducedMotion
+                tile.absorbFraction=smooth and tile.absorbFraction and
+                    (tile.absorbFraction+(ratio-tile.absorbFraction)*(1-math.exp(-18*dt))) or ratio
+                local fill=tile.absorbFraction
+                tile.absorbFill:SetSize(16,math.max(.01,16*fill))
+                tile.absorbFill:SetTexCoord(0,1,1-fill,1)
+                tile.absorbFill:SetShown(fill>0)
+            else tile.absorbFill:Hide();tile.absorbFraction=nil end
+        end
         if tile:IsShown() then any=true end
     end
     self.bulwarkTile.lock:SetShown(self.db.forbearanceAware and fb and fb.active and fb.expires and fb.expires>now and not suppressed or false)

@@ -29,6 +29,10 @@ function PTK:ReadRaidMark(unit)
 end
 
 function PTK:MarkingStatus()
+    if self.assistedMarking then
+        if not self.db.enabled then return "OFF","TankKit is disabled." end
+        return "ASSIST", "Select a target, then click Skull or X. Shift-click Skull: X; Ctrl-click: clear. Bind the secure actions under Paladin TankKit, or use WoW's Raid Targeting bindings. Group permissions still apply."
+    end
     local instanceID,kind=self:Instance()
     local m=self.marking
     if not self.db.enabled then return "OFF","TankKit is disabled." end
@@ -76,11 +80,16 @@ function PTK:MarkActionBlocked(addon,action)
     if not self:Readable(addon) or type(addon)~="string" or addon~="PaladinTankKit" then return end
     if not self:Readable(action) or type(action)~="string" then return end
     if not action:find("SetRaidTarget",1,true) and not self.markAttempt then return end
+    if self.assistedMarking then
+        self.secureMarkBlocked=true
+        return
+    end
     self.markingBlocked="WoW blocked addon marking. Use Blizzard's target-marker keybindings or target menu; leader status cannot override this client restriction."
     self:PauseMarking(self.markingBlocked)
 end
 
 function PTK:UpdatePermissionAlert()
+    if self.assistedMarking then return end
     local issue = self.db.enabled and self:MarkPermissionIssue() or nil
     if issue and not self.permissionWarned then
         self:Print(issue); self.permissionWarned = true
@@ -90,6 +99,7 @@ end
 function PTK:ResetMarking()
     self.marking = {candidates = {}, slots = {}, owned = {}, ignored = {}, scouted = {}, sequence = 0}
     self.markFeedback, self.markFlash = nil, nil
+    self.markAdvice=nil
 end
 
 function PTK:UnitIdentity(unit)
@@ -125,6 +135,7 @@ function PTK:GroupEngaged(unit)
 end
 
 function PTK:AutoMarkAllowed()
+    if self.assistedMarking then return false end
     local instanceID, kind = self:Instance()
     local catalog = self.dungeons[instanceID]
     return self.isPaladin and self.db and self.db.enabled and self.db.autoMark and not self.preview
@@ -132,6 +143,40 @@ function PTK:AutoMarkAllowed()
         and not self.markingBlocked
         and not (self.marking and self.marking.worldBoss)
         and not (catalog and catalog.manualOnly) and not UnitIsDeadOrGhost("player") and not IsMounted()
+end
+
+-- Advice never writes markers or changes secure button attributes. Hidden data
+-- means no recommendation. Mouseover can scout a caster but cannot select it.
+function PTK:UpdateMarkAdvice()
+    self.markAdvice=nil
+    if not self.db.enabled or not self.db.autoMark or self.preview
+        or UnitIsDeadOrGhost("player") or IsMounted() then return end
+    local id,kind=self:Instance()
+    if kind~="party" or not IsInGroup() or IsInRaid() then return end
+    local catalog=self.dungeons[id]
+    if not catalog or catalog.manualOnly then return end
+    if not self.marking then self:ResetMarking() end
+    local m=self.marking
+    local guid=self:UnitIdentity("mouseover")
+    if guid and self:IsAutoMarkEnemy("mouseover") then
+        local cast=self:Call(UnitCastingInfo,"mouseover") or self:Call(UnitChannelInfo,"mouseover")
+        if type(cast)=="string" and (m.scouted[guid] or (m.scoutCount or 0)<256) then
+            if not m.scouted[guid] then m.scoutCount=(m.scoutCount or 0)+1 end
+            m.scouted[guid]={caster=true}
+        end
+    end
+    if not self:IsAutoMarkEnemy("target") then return end
+    local targetGUID,npcID,name=self:UnitIdentity("target")
+    if not targetGUID then return end
+    local mark,readable=self:ReadRaidMark("target")
+    if not readable or mark then return end -- Respect every existing marker.
+    local entry=self:CatalogEntry(id,npcID,name)
+    if entry and (entry.confidence or entry.neverAutoMark or entry.boss) then return end
+    local cast=self:Call(UnitCastingInfo,"target") or self:Call(UnitChannelInfo,"target")
+    local caster=type(cast)=="string" or (m.scouted[targetGUID] and m.scouted[targetGUID].caster)
+        or (entry and entry.caster)
+    if entry and entry.score and entry.score>40 then self.markAdvice="Priority enemy"
+    elseif caster then self.markAdvice="Priority caster" end
 end
 
 function PTK:IsAutoMarkEnemy(unit)
@@ -405,6 +450,7 @@ function PTK:MarkUnitDied(guid)
 end
 
 function PTK:SmartMarkPull()
+    if self.assistedMarking then self:Print(select(2,self:MarkingStatus()));return end
     if not self.isPaladin or not self.db.enabled then return end
     if self:MarkPermissionIssue() then self:Print(self:MarkPermissionIssue()); return end
     if not self.db.autoMark then self:Print("Enable Auto mark pulled elites in settings first."); return end

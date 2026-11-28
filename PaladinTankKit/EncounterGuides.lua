@@ -28,7 +28,7 @@ plan(36,"Cookie",dm.."cookie",
     {casts={["cookie's cooking"]="Cookie's Cooking: stop the heal."}})
 local hot="guide/hall-of-thanes-dungeon-overview-location-rewards"
 plan(3065,"Faldrim Anvilmar",hot,
-    "Plan: clear nearby enemies first. Watch Mind Blast and Anvilmar's Curse; Paladin cleanse cannot remove curses.",
+    "Plan: clear the patrol area first. Watch Mind Blast. Anvilmar's Curse needs a curse dispeller; do not spend Purify/Cleanse on it.",
     {casts={["mind blast"]="Mind Blast: stop the cast if your group can."}})
 plan(3065,"Magmatus",hot,
     "Plan: kill the Dark Iron Summoner first. Keep Magmatus away from the party; avoid Fire Nova and remove Combust when possible.",
@@ -38,17 +38,25 @@ plan(3065,"Plunder",hot,
     "Plan: use a clear wall or corner as a backstop. Keep uncleared packs away from the knockback direction.",
     {casts={["knock away"]="Knock Away: check your backstop."}})
 plan(3065,"Durgen Dirgehammer",hot,
-    "Plan: clear surrounding Looters before pulling. Kill golems one at a time and prepare for Fear and heavy tank damage.",
+    "Plan: clear Looters first. Focus one golem at a time; Hammer of Justice on a golem reduces incoming attacks. Keep Fear away from uncleared packs.",
     {casts={["fear"]="Fear: keep the fight away from uncleared enemies."}})
 local rol="dungeon-journal/ruins-of-lordaeron/"
 plan(2999,"Witherfang",rol.."witherfang",
-    "Plan: deal with the accompanying spiders; use stuns and remove Leech Poison from the tank.")
+    "Plan: kill the two spiders first. Use Hammer of Justice to reduce pressure; Purify/Cleanse Leech Poison from yourself when safe.",
+    {cleanseDebuff="leech poison",cleanseCue="Leech Poison on you: use Purify/Cleanse when safe."})
+local rolGuide="guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+plan(2999,"The Baron",rolGuide,
+    "Plan: keep health topped before Knockout. Hammer of Justice can prevent it; expect a threat drop if it lands. Keep the fight clear of other packs.",
+    {casts={["knockout"]="Knockout: Hammer of Justice if available; prepare to recover threat."}})
+plan(2999,"Viktor the Vile",rolGuide,
+    "Plan: gather each of the five opening waves before damage starts. On Viktor, Purify/Cleanse your Leech Poison when safe and keep melee enemies in front.",
+    {cleanseDebuff="leech poison",cleanseCue="Leech Poison on you: use Purify/Cleanse when safe."})
 plan(2999,"The Abandoned",rol.."the-abandoned",
     "Plan: gather the statue's waves, then stop Life Drain. Watch Frost Nova and the melee slow.",
     {casts={["life drain"]="Life Drain: stop the channel.",["drain life"]="Drain Life: stop the channel."}})
 plan(2999,"Rath'mael",rol.."rathmael",
-    "Plan: leave the tank's original position when Flamestrike begins; use a stun to prevent the cast when possible.",
-    {casts={["flamestrike"]="Flamestrike: move away from the cast's starting location."}})
+    "Plan: Hammer of Justice can prevent Flamestrike. If the cast begins, move from your starting position; do not stay to finish an ability.",
+    {casts={["flamestrike"]="Flamestrike: move from the starting location; Hammer of Justice if available."}})
 plan(43,"Lady Anacondra","dungeon-journal/wailing-caverns/lady-anacondra",
     "Plan: stop Sleep first. Avoid extra Druids of the Fang; control an accidental extra druid.",
     {casts={["sleep"]="Sleep: stop the cast to protect your tank or healer."}})
@@ -112,6 +120,10 @@ function P:UpdateEncounterCue()
     local cast=self:Call(UnitCastingInfo,bossUnit) or self:Call(UnitChannelInfo,bossUnit)
     if type(cast)=="string" and plan.casts and plan.casts[cast:lower()] then
         cue("cast:"..cast,plan.casts[cast:lower()]);return
+    end
+    local cleanse=self.personalCleanse
+    if cleanse and plan.cleanseDebuff and cleanse.name:lower()==plan.cleanseDebuff then
+        cue("cleanse:"..plan.cleanseDebuff,plan.cleanseCue);return
     end
     if plan.adds then
         for _,unit in ipairs(units) do

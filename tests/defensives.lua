@@ -67,7 +67,7 @@ check(p:Warnings()=="Shield durability: 20%","Equipped shield at twenty percent 
 ITEM_DURABILITY={0,100}; event("UPDATE_INVENTORY_DURABILITY")
 check(p:Warnings()=="Shield broken","Broken equipped shield gets clear warning")
 GROUP=true; LEADER=false; INSTANCE_KIND="party"; INSTANCE_ID=36; p:Render()
-check(p.warning.text:find("Shield broken") and p.warning.text:find("request party leader"),"Shield and leadership alerts coexist on one line")
+check(p.warning.text:find("Shield broken") and not p.warning.text:find("request party leader") and p.markStatus.text=="ASSIST","Shield warning remains prominent while marking stays a quiet ASSIST status")
 ITEM_DURABILITY={100,100}; event("UPDATE_INVENTORY_DURABILITY")
 check(p.shieldWarning==nil,"Repair clears shield warning immediately")
 ITEM_DURABILITY={5,100}; EQUIPPED_OFFHAND=nil; event("PLAYER_EQUIPMENT_CHANGED",17)

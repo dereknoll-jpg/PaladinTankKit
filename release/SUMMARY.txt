@@ -1,1 +1,1 @@
-A minimalist Paladin tanking companion with dungeon marking assistance, animated ability timers, boss notes, and tank-buff alerts.
+A clean Protection Paladin toolkit for WoW Forever with assisted Skull/X marking, buff and cooldown timers, protection indicators, cleanse reminders, and compact boss notes.

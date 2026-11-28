@@ -73,3 +73,15 @@ Native spell data visibility, filter behavior, icon loading and animation pacing
 still need live Forever review. Offline tests simulate readable and restricted
 data, alternate client versions, encounter transitions, personal dispels and all
 new controls. They cannot establish that every cast is exposed in live combat.
+
+## November 27, 2026 — Paladin-specific refinements
+
+The reviewed override catalog now contains fourteen plans in four dungeons. Six Paladin-oriented plans were updated or added: Faldrim Anvilmar, Durgen Dirgehammer, Witherfang, The Baron, Viktor the Vile and Rath'mael. No retail/Classic encounter data or reader comments were used for these additions.
+
+- Hall of Thanes mechanics and explicit stun advice: https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards (patch 1.60.1, reviewed November 27). Durgen's golem advice names Hammer of Justice; Faldrim's curse reminder explains the Paladin dispel limitation.
+- Ruins mechanics and stun/poison advice: https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards (patch 1.60.1, reviewed November 27). The Baron has Knockout/threat loss; Viktor has opening waves and Leech Poison; Rath'mael can be stunned or his Flamestrike avoided.
+- Shared Paladin utility spells: https://www.wowhead.com/forever/guide/classes/paladin/retribution/dps-abilities . Hammer of Justice is a stun; Purify removes poison/disease and Cleanse also handles magic. Applying those class tools to the cited stun/dispel opportunities is TankKit's recommendation, not a claim that a spell is currently learned, ready or guaranteed to land.
+
+Leech Poison encounter cues require an already-detected, client-filtered removable personal debuff with the matching readable English name. They inherit the personal-reminder toggle and require an observed engaged supported boss. No boss cast schedule or party-debuff scan is added.
+
+Bulwark's fill uses observed aura points and the largest readable value for that application; hidden data hides the fill while retaining only the historical baseline and deadline. A first observation after partial consumption can start at full relative fill: it is not the original maximum.

@@ -1,5 +1,19 @@
 local _, P = ...
 
+-- One refresh can serve the timer, Devotion, protection and cleanse readers.
+-- Cache only within that refresh; events must never inherit an old snapshot.
+function P:AuraAt(index,filter)
+    local cache=self.auraScanCache
+    if cache then
+        cache[filter]=cache[filter] or {}
+        local hit=cache[filter][index]
+        if hit then return hit.value,hit.ok end
+    end
+    local value,ok=self:Call(C_UnitAuras and C_UnitAuras.GetAuraDataByIndex,"player",index,filter)
+    if cache then cache[filter][index]={value=value,ok=ok} end
+    return value,ok
+end
+
 function P:AurasRestricted(id)
     if id and C_Secrets then
         local value, ok = self:Call(C_Secrets.ShouldSpellAuraBeSecret,id)
@@ -63,7 +77,7 @@ function P:ReadAuras(filter)
     if type(api.GetAuraDataByIndex)=="function" then
         local complete=true
         for index=1,255 do
-            local aura,ok=self:Call(api.GetAuraDataByIndex,"player",index,filter)
+            local aura,ok=self:AuraAt(index,filter)
             if not ok then complete=false;break end
             if aura==nil then break end
             if type(aura)~="table" then complete=false;break end
@@ -91,7 +105,8 @@ function P:ReadAuras(filter)
 end
 
 function P:RefreshAuras()
-    self:RefreshPaladinAura();self:RefreshShieldState()
+    self.auraScanCache={}
+    self:RefreshPaladinAura();self:RefreshShieldState(false)
     local helpful,_,hidden=self:ReadAuras("HELPFUL")
     local harmful,_,debuffHidden=self:ReadAuras("HARMFUL")
     local now=GetTime()
@@ -130,6 +145,8 @@ function P:RefreshAuras()
     self:RefreshGround(helpful.ground)
     self:RefreshTankBuffs()
     self:RefreshProtection()
+    self.auraScanCache=nil
+    self.lastAuraRefresh=now
 end
 
 function P:NoteCast(unit,id,intentional)

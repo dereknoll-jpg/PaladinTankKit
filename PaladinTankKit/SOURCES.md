@@ -144,3 +144,7 @@ The fixed protection indicators and twelve refreshed plans use Wowhead Forever
 for effect IDs, exact encounter sources, version gating and live-test limitations.
 Only that reviewed catalog can generate the new private encounter cues. Historical
 coverage in earlier sections describes older manual plans, not a recheck of all 193 plans.
+
+## Assisted marking — November 27, 2026
+
+Version 1.0.6 supersedes the historical automatic queue behavior described above. Normal play uses fixed player-triggered secure raidtarget actions, with optional dungeon elite advice. Native source: https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua (SECURE_ACTIONS.raidtarget). Direct SetRaidTarget calls are not used in assisted mode. Manual actions use native semantics; they do not enforce elite-only filtering. Live click/keybinding validation remains required.

@@ -1,14 +1,4 @@
 <Bindings>
-    <Binding name="PALADINTANKKIT_PULL" header="PALADINTANKKIT">
-        PaladinTankKit_Pull()
-    </Binding>
-    <Binding name="PALADINTANKKIT_SKULL">
-        PaladinTankKit_Mark(8)
-    </Binding>
-    <Binding name="PALADINTANKKIT_CROSS">
-        PaladinTankKit_Mark(7)
-    </Binding>
-    <Binding name="PALADINTANKKIT_CLEAR">
-        PaladinTankKit_Mark(0)
-    </Binding>
+    <Binding name="CLICK PaladinTankKitSkull:Mark" header="PALADINTANKKIT" />
+    <Binding name="CLICK PaladinTankKitCross:Mark" />
 </Bindings>
